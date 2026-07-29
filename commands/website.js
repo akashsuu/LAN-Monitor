@@ -6,6 +6,7 @@ const net = require('net');
 const ora = require('ora');
 const store = require('../config/store');
 const formatter = require('../utils/formatter');
+const network = require('../utils/network');
 
 const websiteCommand = {
   add(url) {
@@ -196,29 +197,63 @@ const websiteCommand = {
     });
   },
 
-  async scanLocal() {
-    const hosts = ['127.0.0.1', 'localhost'];
-    const ports = [80, 443, 3000, 5000, 8000, 8080, 8443, 8888, 9090, 3001, 4200, 5173];
+  async scanLocal(target) {
+    const localIP = network.getLocalIP();
+    const subnet = localIP.substring(0, localIP.lastIndexOf('.'));
+    const ports = [80, 443, 3000, 5000, 8000, 8080, 8443, 8888, 9090, 3001, 4200, 5173, 8090, 9443];
 
-    const spinner = ora({ text: 'Scanning localhost for web servers...', color: 'cyan' }).start();
+    const checkPort = (host, port) => new Promise((resolve) => {
+      const socket = new net.Socket();
+      socket.setTimeout(1500);
+      socket.on('connect', () => { socket.destroy(); resolve(true); });
+      socket.on('error', () => { socket.destroy(); resolve(false); });
+      socket.on('timeout', () => { socket.destroy(); resolve(false); });
+      socket.connect(port, host);
+    });
 
+    const spinner = ora({ text: 'Scanning for web servers...', color: 'cyan' }).start();
     const results = [];
-    for (const host of hosts) {
-      for (const port of ports) {
-        try {
-          const open = await new Promise((resolve) => {
-            const socket = new net.Socket();
-            socket.setTimeout(1500);
-            socket.on('connect', () => { socket.destroy(); resolve(true); });
-            socket.on('error', () => { socket.destroy(); resolve(false); });
-            socket.on('timeout', () => { socket.destroy(); resolve(false); });
-            socket.connect(port, host);
-          });
-          if (open) {
-            results.push({ host, port });
+
+    if (target) {
+      const parts = target.split(':');
+      const host = parts[0];
+      if (parts.length === 2) {
+        spinner.text = `Checking ${chalk.cyan(target)}...`;
+        const open = await checkPort(host, parseInt(parts[1], 10));
+        if (open) results.push({ host, port: parseInt(parts[1], 10) });
+      } else if (target.includes('/')) {
+        const base = target.replace('/24', '');
+        const baseSubnet = base.substring(0, base.lastIndexOf('.'));
+        spinner.text = `Scanning subnet ${chalk.cyan(target)}...`;
+        for (let i = 1; i <= 254; i++) {
+          const ip = `${baseSubnet}.${i}`;
+          for (const port of ports.slice(0, 3)) {
+            const open = await checkPort(ip, port);
+            if (open) results.push({ host: ip, port });
           }
-        } catch {
         }
+      } else {
+        spinner.text = `Scanning ${chalk.cyan(host)}...`;
+        for (const port of ports) {
+          const open = await checkPort(host, port);
+          if (open) results.push({ host, port });
+        }
+      }
+    } else {
+      const hosts = ['127.0.0.1', 'localhost', localIP];
+      for (const host of hosts) {
+        for (const port of ports) {
+          const open = await checkPort(host, port);
+          if (open) results.push({ host, port });
+        }
+      }
+
+      spinner.text = 'Scanning subnet for web servers...';
+      for (let i = 1; i <= 254; i++) {
+        const ip = `${subnet}.${i}`;
+        if (hosts.includes(ip)) continue;
+        const open = await checkPort(ip, 80);
+        if (open) results.push({ host: ip, port: 80 });
       }
     }
 
@@ -228,7 +263,7 @@ const websiteCommand = {
     formatter.heading('Local Web Servers');
 
     if (results.length === 0) {
-      console.log(`  ${chalk.yellow('No web servers found on localhost.')}\n`);
+      console.log(`  ${chalk.yellow('No web servers found.\n')}`);
       return;
     }
 

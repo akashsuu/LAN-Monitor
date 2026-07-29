@@ -71,12 +71,12 @@ function createCLI() {
 
   program
     .command('website')
-    .description('Manage monitored websites. Run without args to scan localhost for web servers')
+    .description('Manage monitored websites. Run without args to scan local network for web servers')
     .argument('[command]', 'Subcommand: scan, add, remove, list, check, history')
     .argument('[arg]', 'URL or name for the subcommand')
     .action((command, arg) => {
       if (!command || command === 'scan') {
-        websiteCommand.scanLocal();
+        websiteCommand.scanLocal(arg);
         return;
       }
       const handlers = {
@@ -91,7 +91,7 @@ function createCLI() {
       } else {
         console.log(chalk.yellow('\n  Usage: ln website <command> [options]\n'));
         console.log(chalk.bold('  Commands:\n'));
-        console.log('    scan      Scan localhost for running web servers');
+        console.log('    scan      Scan local network for web servers (or: scan <ip>)');
         console.log('    add       Add a website to monitor');
         console.log('    remove    Remove a monitored website');
         console.log('    list      List all monitored websites');
