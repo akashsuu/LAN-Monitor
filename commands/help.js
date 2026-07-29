@@ -1,0 +1,65 @@
+const chalk = require('chalk');
+
+const helpCommand = {
+  execute() {
+    const output = [];
+    output.push('');
+    output.push(chalk.bold.cyan('  LAN Monitor - Network Monitoring CLI'));
+    output.push(chalk.gray('  \u2500'.repeat(35)));
+    output.push('');
+    output.push(chalk.bold('  ROOT COMMANDS'));
+    output.push(chalk.gray('  \u2500'.repeat(20)));
+    output.push('    ln help              Display this help message');
+    output.push('    ln version           Show CLI version');
+    output.push('    ln status            Show overall system status');
+    output.push('    ln doctor            Run system diagnostics');
+    output.push('    ln update            Check for updates');
+    output.push('');
+    output.push(chalk.bold('  NETWORK COMMANDS'));
+    output.push(chalk.gray('  \u2500'.repeat(20)));
+    output.push('    ln ping <host>       Ping a host');
+    output.push('    ln scan [subnet]     Scan local network');
+    output.push('    ln devices           List known devices');
+    output.push('    ln device <ip>       Show device details');
+    output.push('    ln port <host> <p>   Check a port');
+    output.push('    ln ports <host>      Scan common ports');
+    output.push('');
+    output.push(chalk.bold('  WEBSITE COMMANDS'));
+    output.push(chalk.gray('  \u2500'.repeat(20)));
+    output.push('    ln website add <url>       Add website to monitor');
+    output.push('    ln website remove <name>   Remove a website');
+    output.push('    ln website list            List monitored websites');
+    output.push('    ln website check <name>    Check website status');
+    output.push('    ln website history <name>  Show website history');
+    output.push('');
+    output.push(chalk.bold('  SERVER COMMANDS'));
+    output.push(chalk.gray('  \u2500'.repeat(20)));
+    output.push('    ln server add <ip>         Add a server');
+    output.push('    ln server list             List servers');
+    output.push('    ln server stats <name>     Server stats');
+    output.push('    ln server remove <name>    Remove a server');
+    output.push('');
+    output.push(chalk.bold('  NETWORK INFO'));
+    output.push(chalk.gray('  \u2500'.repeat(20)));
+    output.push('    ln ethernet          Show ethernet info');
+    output.push('    ln internet          Show internet status');
+    output.push('    ln publicip          Show public IP');
+    output.push('    ln gateway           Show gateway');
+    output.push('    ln dns               Show DNS info');
+    output.push('    ln speed             Run speed test');
+    output.push('');
+    output.push(chalk.bold('  MANAGEMENT'));
+    output.push(chalk.gray('  \u2500'.repeat(20)));
+    output.push('    ln dashboard         Start the dashboard');
+    output.push('    ln alerts            Manage alerts');
+    output.push('    ln report [period]   Generate report (today|week|month)');
+    output.push('    ln export <format>   Export data (pdf|csv)');
+    output.push('    ln config [cmd]      View or change config');
+    output.push('');
+    output.push(chalk.gray('  For detailed help on any command, use: ln <command> --help'));
+    output.push('');
+    console.log(output.join('\n'));
+  }
+};
+
+module.exports = helpCommand;

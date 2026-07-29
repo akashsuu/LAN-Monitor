@@ -1,0 +1,199 @@
+const chalk = require('chalk');
+const https = require('https');
+const http = require('http');
+const dns = require('dns');
+const ora = require('ora');
+const store = require('../config/store');
+const formatter = require('../utils/formatter');
+
+const websiteCommand = {
+  add(url) {
+    if (!url) {
+      console.log(chalk.red('  Error: Please provide a URL.'));
+      console.log(chalk.gray('  Usage: ln website add <url>'));
+      return;
+    }
+    if (!url.startsWith('http')) {
+      url = 'https://' + url;
+    }
+    const added = store.addWebsite(url);
+    if (added) {
+      const name = url.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+      console.log(chalk.green(`\n  \u2713 Added website: ${chalk.cyan(url)}`));
+      console.log(chalk.gray(`    Name: ${name}\n`));
+    } else {
+      console.log(chalk.yellow(`\n  \u26A0 Website already being monitored: ${url}\n`));
+    }
+  },
+
+  remove(name) {
+    if (!name) {
+      console.log(chalk.red('  Error: Please provide a website name or URL.'));
+      return;
+    }
+    const removed = store.removeWebsite(name);
+    if (removed) {
+      console.log(chalk.green(`\n  \u2713 Removed website: ${chalk.cyan(name)}\n`));
+    } else {
+      console.log(chalk.yellow(`\n  \u26A0 Website not found: ${name}\n`));
+    }
+  },
+
+  list() {
+    const websites = store.getWebsites();
+    if (websites.length === 0) {
+      console.log(chalk.yellow('\n  No websites being monitored.\n'));
+      return;
+    }
+    console.log('');
+    console.log(`  ${chalk.bold('Monitored Websites')} ${chalk.gray(`(${websites.length})`)}`);
+    console.log(`  ${chalk.gray('\u2500'.repeat(40))}`);
+    for (const site of websites) {
+      console.log(`  ${chalk.cyan('\u2022')} ${site.name || site.url}`);
+      console.log(`    ${chalk.gray(site.url)}`);
+    }
+    console.log('');
+  },
+
+  async check(name) {
+    if (!name) {
+      console.log(chalk.red('  Error: Please provide a website name.'));
+      return;
+    }
+
+    const websites = store.getWebsites();
+    const site = websites.find(w => w.name === name || w.url === name);
+    if (!site) {
+      console.log(chalk.yellow(`\n  \u26A0 Website not found: ${name}\n`));
+      return;
+    }
+
+    const spinner = ora({ text: `Checking ${chalk.cyan(site.url)}...`, color: 'cyan' }).start();
+    const results = await this.checkSite(site.url);
+    spinner.stop();
+
+    console.log('');
+    formatter.heading(`Website Check - ${site.url}`);
+    formatter.labelValue('HTTP Status', results.statusCode ? chalk.green(`${results.statusCode}`) : chalk.red('Failed'));
+    formatter.labelValue('Response Time', results.latency !== null ? formatter.ms(results.latency) : chalk.gray('N/A'));
+    formatter.labelValue('SSL', results.ssl ? chalk.green('Valid') : chalk.red(results.sslError || 'N/A'));
+    formatter.labelValue('SSL Expiry', results.sslExpiry || chalk.gray('N/A'));
+    formatter.labelValue('DNS', results.dns ? chalk.green(results.dns) : chalk.red('Failed'));
+    formatter.labelValue('Status', results.online ? chalk.green('Online') : chalk.red('Offline'));
+
+    store.addHistoryEntry({
+      type: 'website',
+      target: site.url,
+      status: results.online,
+      latency: results.latency,
+      statusCode: results.statusCode
+    });
+    console.log('');
+  },
+
+  history(name) {
+    if (!name) {
+      console.log(chalk.red('  Error: Please provide a website name.'));
+      return;
+    }
+    const history = store.getHistory();
+    const entries = history.filter(e => e.type === 'website' && e.target && e.target.includes(name));
+    if (entries.length === 0) {
+      console.log(chalk.yellow(`\n  No history for: ${name}\n`));
+      return;
+    }
+    console.log('');
+    console.log(`  ${chalk.bold('Website History')} ${chalk.gray('- ' + name)}`);
+    console.log(`  ${chalk.gray('\u2500'.repeat(50))}`);
+    entries.slice(0, 20).forEach(entry => {
+      const status = entry.status ? chalk.green('\u2713') : chalk.red('\u2717');
+      const time = new Date(entry.timestamp).toLocaleString();
+      console.log(`  ${status} ${chalk.gray(time)} - ${entry.latency ? `${entry.latency.toFixed(0)}ms` : 'N/A'} (${entry.statusCode || '?'})`);
+    });
+    console.log('');
+  },
+
+  checkSite(url) {
+    return new Promise((resolve) => {
+      const start = Date.now();
+      const parsedUrl = new URL(url);
+      const proto = parsedUrl.protocol === 'https:' ? https : http;
+
+      let dnsResolved = null;
+      dns.resolve4(parsedUrl.hostname, (err, addresses) => {
+        if (!err && addresses.length > 0) dnsResolved = addresses[0];
+      });
+
+      const options = {
+        hostname: parsedUrl.hostname,
+        port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+        path: parsedUrl.pathname || '/',
+        method: 'HEAD',
+        timeout: 10000,
+        rejectUnauthorized: false
+      };
+
+      const req = proto.request(options, (res) => {
+        const latency = Date.now() - start;
+        let sslValid = null;
+        let sslExpiry = null;
+        if (res.connection && res.connection.getPeerCertificate) {
+          try {
+            const cert = res.connection.getPeerCertificate();
+            if (cert && cert.subject) {
+              sslValid = new Date() < new Date(cert.valid_to);
+              sslExpiry = new Date(cert.valid_to).toLocaleDateString();
+            }
+          } catch {
+            sslValid = false;
+          }
+        }
+        res.resume();
+        resolve({
+          url,
+          statusCode: res.statusCode,
+          latency,
+          ssl: sslValid,
+          sslError: sslValid === null ? 'Not checked' : (sslValid ? null : 'Expired'),
+          sslExpiry,
+          dns: dnsResolved,
+          online: res.statusCode >= 200 && res.statusCode < 500,
+          error: null
+        });
+      });
+
+      req.on('error', (err) => {
+        resolve({
+          url,
+          statusCode: null,
+          latency: Date.now() - start,
+          ssl: false,
+          sslError: err.message,
+          sslExpiry: null,
+          dns: dnsResolved,
+          online: false,
+          error: err.message
+        });
+      });
+
+      req.on('timeout', () => {
+        req.destroy();
+        resolve({
+          url,
+          statusCode: null,
+          latency: Date.now() - start,
+          ssl: false,
+          sslError: 'Timeout',
+          sslExpiry: null,
+          dns: dnsResolved,
+          online: false,
+          error: 'Timeout'
+        });
+      });
+
+      req.end();
+    });
+  }
+};
+
+module.exports = websiteCommand;
