@@ -2,6 +2,7 @@ const chalk = require('chalk');
 const https = require('https');
 const http = require('http');
 const dns = require('dns');
+const net = require('net');
 const ora = require('ora');
 const store = require('../config/store');
 const formatter = require('../utils/formatter');
@@ -193,6 +194,58 @@ const websiteCommand = {
 
       req.end();
     });
+  },
+
+  async scanLocal() {
+    const hosts = ['127.0.0.1', 'localhost'];
+    const ports = [80, 443, 3000, 5000, 8000, 8080, 8443, 8888, 9090, 3001, 4200, 5173];
+
+    const spinner = ora({ text: 'Scanning localhost for web servers...', color: 'cyan' }).start();
+
+    const results = [];
+    for (const host of hosts) {
+      for (const port of ports) {
+        try {
+          const open = await new Promise((resolve) => {
+            const socket = new net.Socket();
+            socket.setTimeout(1500);
+            socket.on('connect', () => { socket.destroy(); resolve(true); });
+            socket.on('error', () => { socket.destroy(); resolve(false); });
+            socket.on('timeout', () => { socket.destroy(); resolve(false); });
+            socket.connect(port, host);
+          });
+          if (open) {
+            results.push({ host, port });
+          }
+        } catch {
+        }
+      }
+    }
+
+    spinner.stop();
+
+    console.log('');
+    formatter.heading('Local Web Servers');
+
+    if (results.length === 0) {
+      console.log(`  ${chalk.yellow('No web servers found on localhost.')}\n`);
+      return;
+    }
+
+    const Table = require('cli-table3');
+    const table = new Table({
+      head: [chalk.cyan('Host'), chalk.cyan('Port'), chalk.cyan('URL')],
+      style: { head: [], border: [] },
+      chars: { 'top': '\u2550', 'top-mid': '\u2564', 'top-left': '\u2554', 'top-right': '\u2557', 'bottom': '\u2550', 'bottom-mid': '\u2567', 'bottom-left': '\u255A', 'bottom-right': '\u255D', 'left': '\u2551', 'left-mid': '\u255F', 'mid': '\u2500', 'mid-mid': '\u253C', 'right': '\u2551', 'right-mid': '\u2562', 'middle': '\u2502' }
+    });
+
+    for (const r of results) {
+      const proto = r.port === 443 ? 'https' : 'http';
+      table.push([r.host, chalk.cyan(r.port.toString()), `${proto}://${r.host}:${r.port}`]);
+    }
+
+    console.log(table.toString());
+    console.log('');
   }
 };
 

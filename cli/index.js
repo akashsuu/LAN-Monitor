@@ -71,23 +71,14 @@ function createCLI() {
 
   program
     .command('website')
-    .description('Manage monitored websites')
-    .hook('preAction', (thisCommand) => {
-      const subcommands = ['add', 'remove', 'list', 'check', 'history'];
-      if (!subcommands.includes(thisCommand.args[0])) {
-        console.log(chalk.yellow('\n  Usage: ln website <command> [options]\n'));
-        console.log(chalk.bold('  Commands:\n'));
-        console.log('    add       Add a website to monitor');
-        console.log('    remove    Remove a monitored website');
-        console.log('    list      List all monitored websites');
-        console.log('    check     Check a website status');
-        console.log('    history   Show website monitoring history\n');
-        process.exit(0);
-      }
-    })
-    .argument('<command>', 'Subcommand: add, remove, list, check, history')
+    .description('Manage monitored websites. Run without args to scan localhost for web servers')
+    .argument('[command]', 'Subcommand: scan, add, remove, list, check, history')
     .argument('[arg]', 'URL or name for the subcommand')
     .action((command, arg) => {
+      if (!command || command === 'scan') {
+        websiteCommand.scanLocal();
+        return;
+      }
       const handlers = {
         add: (url) => websiteCommand.add(url),
         remove: (name) => websiteCommand.remove(name),
@@ -95,7 +86,18 @@ function createCLI() {
         check: (name) => websiteCommand.check(name),
         history: (name) => websiteCommand.history(name),
       };
-      if (handlers[command]) handlers[command](arg);
+      if (handlers[command]) {
+        handlers[command](arg);
+      } else {
+        console.log(chalk.yellow('\n  Usage: ln website <command> [options]\n'));
+        console.log(chalk.bold('  Commands:\n'));
+        console.log('    scan      Scan localhost for running web servers');
+        console.log('    add       Add a website to monitor');
+        console.log('    remove    Remove a monitored website');
+        console.log('    list      List all monitored websites');
+        console.log('    check     Check a website status');
+        console.log('    history   Show website monitoring history\n');
+      }
     });
 
   program
