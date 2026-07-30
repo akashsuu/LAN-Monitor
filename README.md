@@ -5,8 +5,9 @@ A professional network monitoring CLI built with Node.js.
 ```bash
 ln ping google.com
 ln scan
-ln devices
-ln internet
+ln website
+ln server
+ln speed
 ```
 
 ## Installation
@@ -16,6 +17,11 @@ git clone https://github.com/akashsuu/LAN-Monitor.git
 cd LAN-Monitor
 npm install
 node index.js help
+```
+
+For global `ln` command:
+```bash
+npm install -g .
 ```
 
 ## Commands
@@ -41,6 +47,10 @@ node index.js help
 ### Websites
 | Command | Description |
 |---------|-------------|
+| `ln website` | Scan local network for web servers |
+| `ln website scan <host>` | Scan a host for web ports |
+| `ln website scan <host:port>` | Check a specific host:port |
+| `ln website scan <subnet/24>` | Scan subnet for web servers |
 | `ln website add <url>` | Add website to monitor |
 | `ln website remove <name>` | Remove a website |
 | `ln website list` | List monitored websites |
@@ -50,6 +60,9 @@ node index.js help
 ### Servers
 | Command | Description |
 |---------|-------------|
+| `ln server` | Scan local network for servers |
+| `ln server scan <host>` | Scan a host for open ports |
+| `ln server scan <host:port>` | Check a specific port |
 | `ln server add <ip>` | Add a server |
 | `ln server list` | List servers |
 | `ln server stats <name>` | Server stats |
@@ -63,7 +76,7 @@ node index.js help
 | `ln publicip` | Show public IP |
 | `ln gateway` | Show gateway |
 | `ln dns` | DNS info |
-| `ln speed` | Speed test |
+| `ln speed` | Speed test (download/upload/ping) |
 
 ### Management
 | Command | Description |
