@@ -94,7 +94,7 @@ const trafficCommand = {
       }
     };
 
-    render();
+    trafficService.getTrafficSnapshot();
     const timer = setInterval(render, 1000);
 
     process.on('SIGINT', () => {

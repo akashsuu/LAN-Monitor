@@ -9,18 +9,16 @@ let previousStats = null;
 
 function getWindowsNetStats() {
   try {
-    const output = execSync('netstat -e 2>nul', { encoding: 'utf8', timeout: 3000 });
+    const output = execSync('cmd /c "netstat -e"', { encoding: 'utf8', timeout: 3000, stdio: ['pipe', 'pipe', 'pipe'] });
     const lines = output.split('\n');
     let bytesSent = 0;
     let bytesRecv = 0;
     for (const line of lines) {
-      const bytesMatch = line.match(/Bytes\s*=\s*(\d+)/i);
+      const bytesMatch = line.match(/Bytes\s+(\d+)\s+(\d+)/i);
       if (bytesMatch) {
-        if (bytesSent === 0) {
-          bytesSent = parseInt(bytesMatch[1], 10);
-        } else if (bytesRecv === 0) {
-          bytesRecv = parseInt(bytesMatch[1], 10);
-        }
+        bytesRecv = parseInt(bytesMatch[1], 10);
+        bytesSent = parseInt(bytesMatch[2], 10);
+        break;
       }
     }
     return { bytesSent, bytesRecv, timestamp: Date.now() };
