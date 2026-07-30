@@ -201,86 +201,117 @@ const websiteCommand = {
     const localIP = network.getLocalIP();
     const subnet = localIP.substring(0, localIP.lastIndexOf('.'));
     const ports = [80, 443, 3000, 5000, 8000, 8080, 8443, 8888, 9090, 3001, 4200, 5173, 8090, 9443];
+    const CONCURRENCY = 100;
 
     const checkPort = (host, port) => new Promise((resolve) => {
       const socket = new net.Socket();
-      socket.setTimeout(1500);
+      socket.setTimeout(2000);
       socket.on('connect', () => { socket.destroy(); resolve(true); });
       socket.on('error', () => { socket.destroy(); resolve(false); });
       socket.on('timeout', () => { socket.destroy(); resolve(false); });
       socket.connect(port, host);
     });
 
+    async function runTasks(tasks) {
+      const results = [];
+      for (let i = 0; i < tasks.length; i += CONCURRENCY) {
+        const batch = tasks.slice(i, i + CONCURRENCY);
+        const batchResults = await Promise.all(batch.map(fn => fn()));
+        results.push(...batchResults.filter(Boolean));
+      }
+      return results;
+    }
+
     const spinner = ora({ text: 'Scanning for web servers...', color: 'cyan' }).start();
-    const results = [];
 
     if (target) {
       const parts = target.split(':');
       const host = parts[0];
       if (parts.length === 2) {
+        const port = parseInt(parts[1], 10);
         spinner.text = `Checking ${chalk.cyan(target)}...`;
-        const open = await checkPort(host, parseInt(parts[1], 10));
-        if (open) results.push({ host, port: parseInt(parts[1], 10) });
-      } else if (target.includes('/')) {
-        const base = target.replace('/24', '');
-        const baseSubnet = base.substring(0, base.lastIndexOf('.'));
-        spinner.text = `Scanning subnet ${chalk.cyan(target)}...`;
-        for (let i = 1; i <= 254; i++) {
-          const ip = `${baseSubnet}.${i}`;
-          for (const port of ports.slice(0, 3)) {
-            const open = await checkPort(ip, port);
-            if (open) results.push({ host: ip, port });
-          }
-        }
-      } else {
-        spinner.text = `Scanning ${chalk.cyan(host)}...`;
-        for (const port of ports) {
-          const open = await checkPort(host, port);
-          if (open) results.push({ host, port });
-        }
+        const open = await checkPort(host, port);
+        spinner.stop();
+        if (!open) { console.log(chalk.yellow('\n  Port closed or no response.\n')); return; }
+        console.log('');
+        formatter.heading('Web Server Found');
+        const Table = require('cli-table3');
+        const table = new Table({
+          head: [chalk.cyan('Host'), chalk.cyan('Port'), chalk.cyan('URL')],
+          style: { head: [], border: [] },
+          chars: { 'top': '\u2550', 'top-mid': '\u2564', 'top-left': '\u2554', 'top-right': '\u2557', 'bottom': '\u2550', 'bottom-mid': '\u2567', 'bottom-left': '\u255A', 'bottom-right': '\u255D', 'left': '\u2551', 'left-mid': '\u255F', 'mid': '\u2500', 'mid-mid': '\u253C', 'right': '\u2551', 'right-mid': '\u2562', 'middle': '\u2502' }
+        });
+        table.push([host, chalk.cyan(port.toString()), `http://${host}:${port}`]);
+        console.log(table.toString());
+        console.log('');
+        return;
       }
+      spinner.text = `Scanning ${chalk.cyan(host)} for open ports...`;
+      const tasks = ports.map(p => async () => {
+        if (await checkPort(host, p)) return { host, port: p };
+      });
+      const results = await runTasks(tasks);
+      spinner.stop();
+      printResults(results, 'Web Servers');
+    } else if (target && target.includes('/')) {
+      const base = target.replace('/24', '');
+      const baseSubnet = base.substring(0, base.lastIndexOf('.'));
+      spinner.text = `Scanning subnet ${chalk.cyan(target)} on port 80...`;
+      const tasks = [];
+      for (let i = 1; i <= 254; i++) {
+        const ip = `${baseSubnet}.${i}`;
+        tasks.push(async () => {
+          if (await checkPort(ip, 80)) return { host: ip, port: 80 };
+        });
+      }
+      const results = await runTasks(tasks);
+      spinner.stop();
+      printResults(results, 'Web Servers');
     } else {
       const hosts = ['127.0.0.1', 'localhost', localIP];
+      spinner.text = 'Scanning localhost...';
+      const tasks = [];
       for (const host of hosts) {
         for (const port of ports) {
-          const open = await checkPort(host, port);
-          if (open) results.push({ host, port });
+          tasks.push(async () => {
+            if (await checkPort(host, port)) return { host, port };
+          });
         }
       }
-
-      spinner.text = 'Scanning subnet for web servers...';
+      let results = await runTasks(tasks);
+      spinner.text = 'Scanning subnet (port 80)...';
+      const subnetTasks = [];
       for (let i = 1; i <= 254; i++) {
         const ip = `${subnet}.${i}`;
         if (hosts.includes(ip)) continue;
-        const open = await checkPort(ip, 80);
-        if (open) results.push({ host: ip, port: 80 });
+        subnetTasks.push(async () => {
+          if (await checkPort(ip, 80)) return { host: ip, port: 80 };
+        });
       }
+      results = results.concat(await runTasks(subnetTasks));
+      spinner.stop();
+      printResults(results, 'Local Web Servers');
     }
 
-    spinner.stop();
-
-    console.log('');
-    formatter.heading('Local Web Servers');
-
-    if (results.length === 0) {
-      console.log(`  ${chalk.yellow('No web servers found.\n')}`);
-      return;
+    function printResults(results, title) {
+      console.log('');
+      formatter.heading(title);
+      if (results.length === 0) {
+        console.log(`  ${chalk.yellow('No web servers found.\n')}`);
+        return;
+      }
+      const Table = require('cli-table3');
+      const table = new Table({
+        head: [chalk.cyan('Host'), chalk.cyan('Port'), chalk.cyan('URL')],
+        style: { head: [], border: [] },
+        chars: { 'top': '\u2550', 'top-mid': '\u2564', 'top-left': '\u2554', 'top-right': '\u2557', 'bottom': '\u2550', 'bottom-mid': '\u2567', 'bottom-left': '\u255A', 'bottom-right': '\u255D', 'left': '\u2551', 'left-mid': '\u255F', 'mid': '\u2500', 'mid-mid': '\u253C', 'right': '\u2551', 'right-mid': '\u2562', 'middle': '\u2502' }
+      });
+      for (const r of results) {
+        table.push([r.host, chalk.cyan(r.port.toString()), `http://${r.host}:${r.port}`]);
+      }
+      console.log(table.toString());
+      console.log('');
     }
-
-    const Table = require('cli-table3');
-    const table = new Table({
-      head: [chalk.cyan('Host'), chalk.cyan('Port'), chalk.cyan('URL')],
-      style: { head: [], border: [] },
-      chars: { 'top': '\u2550', 'top-mid': '\u2564', 'top-left': '\u2554', 'top-right': '\u2557', 'bottom': '\u2550', 'bottom-mid': '\u2567', 'bottom-left': '\u255A', 'bottom-right': '\u255D', 'left': '\u2551', 'left-mid': '\u255F', 'mid': '\u2500', 'mid-mid': '\u253C', 'right': '\u2551', 'right-mid': '\u2562', 'middle': '\u2502' }
-    });
-
-    for (const r of results) {
-      const proto = r.port === 443 ? 'https' : 'http';
-      table.push([r.host, chalk.cyan(r.port.toString()), `${proto}://${r.host}:${r.port}`]);
-    }
-
-    console.log(table.toString());
-    console.log('');
   }
 };
 
