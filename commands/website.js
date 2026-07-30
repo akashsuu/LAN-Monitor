@@ -200,7 +200,7 @@ const websiteCommand = {
   async scanLocal(target) {
     const localIP = network.getLocalIP();
     const subnet = localIP.substring(0, localIP.lastIndexOf('.'));
-    const ports = [80, 443, 3000, 5000, 8000, 8080, 8443, 8888, 9090, 3001, 4200, 5173, 8090, 9443];
+    const WEB_PORTS = [80, 443, 3000, 5000, 8000, 8080, 8443, 8888, 9090, 3001, 4200, 5173, 8090, 9443];
     const CONCURRENCY = 100;
 
     const checkPort = (host, port) => new Promise((resolve) => {
@@ -222,77 +222,6 @@ const websiteCommand = {
       return results;
     }
 
-    const spinner = ora({ text: 'Scanning for web servers...', color: 'cyan' }).start();
-
-    if (target) {
-      const parts = target.split(':');
-      const host = parts[0];
-      if (parts.length === 2) {
-        const port = parseInt(parts[1], 10);
-        spinner.text = `Checking ${chalk.cyan(target)}...`;
-        const open = await checkPort(host, port);
-        spinner.stop();
-        if (!open) { console.log(chalk.yellow('\n  Port closed or no response.\n')); return; }
-        console.log('');
-        formatter.heading('Web Server Found');
-        const Table = require('cli-table3');
-        const table = new Table({
-          head: [chalk.cyan('Host'), chalk.cyan('Port'), chalk.cyan('URL')],
-          style: { head: [], border: [] },
-          chars: { 'top': '\u2550', 'top-mid': '\u2564', 'top-left': '\u2554', 'top-right': '\u2557', 'bottom': '\u2550', 'bottom-mid': '\u2567', 'bottom-left': '\u255A', 'bottom-right': '\u255D', 'left': '\u2551', 'left-mid': '\u255F', 'mid': '\u2500', 'mid-mid': '\u253C', 'right': '\u2551', 'right-mid': '\u2562', 'middle': '\u2502' }
-        });
-        table.push([host, chalk.cyan(port.toString()), `http://${host}:${port}`]);
-        console.log(table.toString());
-        console.log('');
-        return;
-      }
-      spinner.text = `Scanning ${chalk.cyan(host)} for open ports...`;
-      const tasks = ports.map(p => async () => {
-        if (await checkPort(host, p)) return { host, port: p };
-      });
-      const results = await runTasks(tasks);
-      spinner.stop();
-      printResults(results, 'Web Servers');
-    } else if (target && target.includes('/')) {
-      const base = target.replace('/24', '');
-      const baseSubnet = base.substring(0, base.lastIndexOf('.'));
-      spinner.text = `Scanning subnet ${chalk.cyan(target)} on port 80...`;
-      const tasks = [];
-      for (let i = 1; i <= 254; i++) {
-        const ip = `${baseSubnet}.${i}`;
-        tasks.push(async () => {
-          if (await checkPort(ip, 80)) return { host: ip, port: 80 };
-        });
-      }
-      const results = await runTasks(tasks);
-      spinner.stop();
-      printResults(results, 'Web Servers');
-    } else {
-      const hosts = ['127.0.0.1', 'localhost', localIP];
-      spinner.text = 'Scanning localhost...';
-      const tasks = [];
-      for (const host of hosts) {
-        for (const port of ports) {
-          tasks.push(async () => {
-            if (await checkPort(host, port)) return { host, port };
-          });
-        }
-      }
-      let results = await runTasks(tasks);
-      spinner.text = 'Scanning subnet (port 80)...';
-      const subnetTasks = [];
-      for (let i = 1; i <= 254; i++) {
-        const ip = `${subnet}.${i}`;
-        if (hosts.includes(ip)) continue;
-        subnetTasks.push(async () => {
-          if (await checkPort(ip, 80)) return { host: ip, port: 80 };
-        });
-      }
-      results = results.concat(await runTasks(subnetTasks));
-      spinner.stop();
-      printResults(results, 'Local Web Servers');
-    }
-
     function printResults(results, title) {
       console.log('');
       formatter.heading(title);
@@ -312,6 +241,74 @@ const websiteCommand = {
       console.log(table.toString());
       console.log('');
     }
+
+    const spinner = ora({ text: 'Scanning for web servers...', color: 'cyan' }).start();
+
+    if (target) {
+      const parts = target.split(':');
+      const host = parts[0];
+      if (parts.length === 2) {
+        const port = parseInt(parts[1], 10);
+        spinner.text = `Checking ${chalk.cyan(target)}...`;
+        const open = await checkPort(host, port);
+        spinner.stop();
+        if (!open) { console.log(chalk.yellow('\n  Port closed or no response.\n')); return; }
+        printResults([{ host, port }], 'Web Server Found');
+        return;
+      }
+      if (target.includes('/')) {
+        const base = target.replace('/24', '');
+        const baseSubnet = base.substring(0, base.lastIndexOf('.'));
+        spinner.text = `Scanning ${chalk.cyan(target)} for web servers...`;
+        const tasks = [];
+        for (let i = 1; i <= 254; i++) {
+          const ip = `${baseSubnet}.${i}`;
+          tasks.push(async () => {
+            if (await checkPort(ip, 80)) return { host: ip, port: 80 };
+          });
+        }
+        const results = await runTasks(tasks);
+        spinner.stop();
+        printResults(results, 'Web Servers');
+        return;
+      }
+      spinner.text = `Scanning ${chalk.cyan(host)} for web ports...`;
+      const tasks = WEB_PORTS.map(p => async () => {
+        if (await checkPort(host, p)) return { host, port: p };
+      });
+      const results = await runTasks(tasks);
+      spinner.stop();
+      printResults(results, `Web Servers on ${host}`);
+      return;
+    }
+
+    const hosts = ['127.0.0.1', 'localhost', localIP];
+    spinner.text = 'Scanning localhost...';
+    let tasks = [];
+    for (const host of hosts) {
+      for (const port of WEB_PORTS) {
+        tasks.push(async () => {
+          if (await checkPort(host, port)) return { host, port };
+        });
+      }
+    }
+    let results = await runTasks(tasks);
+
+    spinner.text = 'Scanning subnet for web servers...';
+    const quickPorts = [80, 443, 8080, 8090];
+    const subnetTasks = [];
+    for (let i = 1; i <= 254; i++) {
+      const ip = `${subnet}.${i}`;
+      if (hosts.includes(ip) || ip === localIP) continue;
+      for (const port of quickPorts) {
+        subnetTasks.push(async () => {
+          if (await checkPort(ip, port)) return { host: ip, port };
+        });
+      }
+    }
+    results = results.concat(await runTasks(subnetTasks));
+    spinner.stop();
+    printResults(results, 'Local Web Servers');
   }
 };
 
