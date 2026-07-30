@@ -102,29 +102,31 @@ function createCLI() {
 
   program
     .command('server')
-    .description('Manage monitored servers')
-    .hook('preAction', (thisCommand) => {
-      const subcommands = ['add', 'list', 'stats', 'remove'];
-      if (!subcommands.includes(thisCommand.args[0])) {
-        console.log(chalk.yellow('\n  Usage: ln server <command> [options]\n'));
-        console.log(chalk.bold('  Commands:\n'));
-        console.log('    add       Add a server to monitor');
-        console.log('    list      List all monitored servers');
-        console.log('    stats     Show server statistics');
-        console.log('    remove    Remove a monitored server\n');
-        process.exit(0);
-      }
-    })
-    .argument('<command>', 'Subcommand: add, list, stats, remove')
+    .description('Monitor servers. Run without args to scan local network for servers')
+    .argument('[command]', 'Subcommand: scan, add, list, stats, remove')
     .argument('[arg]', 'IP address or name')
     .action((command, arg) => {
+      if (!command || command === 'scan') {
+        serverCommand.scanLocal(arg);
+        return;
+      }
       const handlers = {
         add: (ip) => serverCommand.add(ip),
         list: () => serverCommand.list(),
         stats: (name) => serverCommand.stats(name),
         remove: (name) => serverCommand.remove(name),
       };
-      if (handlers[command]) handlers[command](arg);
+      if (handlers[command]) {
+        handlers[command](arg);
+      } else {
+        console.log(chalk.yellow('\n  Usage: ln server <command> [options]\n'));
+        console.log(chalk.bold('  Commands:\n'));
+        console.log('    scan      Scan local network for servers');
+        console.log('    add       Add a server to monitor');
+        console.log('    list      List all monitored servers');
+        console.log('    stats     Show server statistics');
+        console.log('    remove    Remove a monitored server\n');
+      }
     });
 
   program
