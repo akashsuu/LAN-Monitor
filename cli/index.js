@@ -18,6 +18,11 @@ const helpCommand = require('../commands/help');
 const statusCommand = require('../commands/status');
 const doctorCommand = require('../commands/doctor');
 const updateCommand = require('../commands/update');
+const watchCommand = require('../commands/watch');
+const infoCommand = require('../commands/info');
+const topologyCommand = require('../commands/topology');
+const trustCommand = require('../commands/trust');
+const nicknameCommand = require('../commands/nickname');
 
 function createCLI() {
   program
@@ -241,6 +246,43 @@ function createCLI() {
         reset: () => configCommand.reset(),
       };
       if (handlers[command]) handlers[command](key, value);
+    });
+
+  program
+    .command('watch')
+    .description('Watch mode - continuously monitor network for device changes')
+    .option('-i, --interval <seconds>', 'Check interval in seconds')
+    .option('-d, --duration <minutes>', 'How long to watch (default: unlimited)')
+    .action((options) => watchCommand.execute(options));
+
+  program
+    .command('info <ip>')
+    .description('Show detailed information about a device')
+    .action((ip) => infoCommand.execute(ip));
+
+  program
+    .command('topology')
+    .description('Show network topology map')
+    .action(() => topologyCommand.execute());
+
+  program
+    .command('trust')
+    .description('Manage trusted devices')
+    .argument('[command]', 'Subcommand: list, add, remove, check')
+    .argument('[arg]', 'MAC address or argument')
+    .argument('[label]', 'Label for trusted device')
+    .action((command, arg, label) => {
+      trustCommand.execute(command || 'list', arg, label);
+    });
+
+  program
+    .command('nickname')
+    .description('Manage device nicknames')
+    .argument('[command]', 'Subcommand: list, set, remove')
+    .argument('[arg]', 'MAC address for the subcommand')
+    .argument('[name]', 'Nickname to set')
+    .action((command, arg, name) => {
+      nicknameCommand.execute(command || 'list', arg, name);
     });
 
   program.parse(process.argv);

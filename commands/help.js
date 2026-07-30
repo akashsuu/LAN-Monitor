@@ -21,6 +21,9 @@ const helpCommand = {
     output.push('    ln scan [subnet]     Scan local network');
     output.push('    ln devices           List known devices');
     output.push('    ln device <ip>       Show device details');
+    output.push('    ln info <ip>         Detailed device information');
+    output.push('    ln watch             Live device monitoring');
+    output.push('    ln topology          Network topology map');
     output.push('    ln port <host> <p>   Check a port');
     output.push('    ln ports <host>      Scan common ports');
     output.push('');
@@ -55,6 +58,8 @@ const helpCommand = {
     output.push('    ln report [period]   Generate report (today|week|month)');
     output.push('    ln export <format>   Export data (pdf|csv)');
     output.push('    ln config [cmd]      View or change config');
+    output.push('    ln nickname          Manage device nicknames');
+    output.push('    ln trust             Manage trusted devices');
     output.push('');
     output.push(chalk.gray('  For detailed help on any command, use: ln <command> --help'));
     output.push('');

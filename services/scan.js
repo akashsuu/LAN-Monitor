@@ -1,34 +1,7 @@
 const { exec } = require('child_process');
 const os = require('os');
 const network = require('../utils/network');
-
-function extractMacVendor(mac) {
-  const vendors = {
-    '00:11:22': 'Dell',
-    '00:1A:2B': 'Intel',
-    '00:50:56': 'VMware',
-    '00:0C:29': 'VMware',
-    '00:15:5D': 'Microsoft',
-    '00:1B:21': 'HP',
-    '00:24:E8': 'Asus',
-    '00:26:18': 'Apple',
-    '00:1E:C2': 'Acer',
-    '00:23:8E': 'Samsung',
-    'F8:32:E4': 'TP-Link',
-    '00:1D:7E': 'Netgear',
-    '00:1A:6B': 'Linksys',
-    '00:E0:4C': 'Realtek',
-    '00:25:90': 'Toshiba',
-    '14:10:9F': 'ASUS',
-    '34:02:86': 'Google',
-    '00:9A:CD': 'Huawei',
-    '70:8B:CD': 'Xiaomi',
-    '00:23:54': 'D-Link'
-  };
-  const prefix = mac.toUpperCase().replace(/:/g, '').substring(0, 6);
-  const formatted = prefix.replace(/(.{2})(.{2})(.{2})/, '$1:$2:$3');
-  return vendors[formatted] || 'Unknown';
-}
+const vendor = require('./vendor');
 
 const scanService = {
   async scanNetwork(subnet) {
@@ -86,8 +59,8 @@ const scanService = {
             const ip = match[1];
             if (!isPrivateIP(ip)) continue;
             const mac = match[2].replace(/-/g, ':');
-            const vendor = extractMacVendor(mac);
-            devices.push({ ip, hostname: '', mac, vendor, latency: null, status: true, deviceType: 'Unknown' });
+            const vendorName = vendor.lookupVendor(mac);
+            devices.push({ ip, hostname: '', mac, vendor: vendorName, latency: null, status: true, deviceType: 'Unknown' });
           }
         }
         resolve(devices);

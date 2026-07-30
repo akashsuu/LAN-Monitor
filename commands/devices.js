@@ -58,12 +58,17 @@ const devicesCommand = {
       }
     });
 
+    const nicknames = store.getNicknames();
     for (const device of devices) {
       const status = device.status ? chalk.green('Online') : chalk.red('Offline');
       const lastSeen = device.lastSeen ? new Date(device.lastSeen).toLocaleDateString() : chalk.gray('-');
+      const nick = device.mac ? nicknames[device.mac.toUpperCase()] : '';
+      const displayName = nick || device.hostname || chalk.gray('-');
+      const trusted = device.mac ? store.isTrusted(device.mac) : false;
+      const trustMark = trusted ? chalk.green(' ✓') : '';
       table.push([
         chalk.cyan(device.ip || '?'),
-        device.hostname || chalk.gray('-'),
+        displayName + trustMark,
         device.mac || chalk.gray('-'),
         device.vendor || chalk.gray('-'),
         status,
@@ -94,11 +99,17 @@ const devicesCommand = {
     console.log(`  ${chalk.gray('\u2500'.repeat(40))}`);
 
     const info = device.ip ? device : stored;
+    const mac = info.mac || '';
+    const nickname = mac ? store.getNicknames()[mac.toUpperCase()] : '';
+    const trusted = mac ? store.isTrusted(mac) : false;
+    const vendorName = info.vendor || require('../services/vendor').lookupVendor(mac);
     console.log(`  ${chalk.bold('IP Address'.padEnd(15))} ${info.ip || chalk.gray('N/A')}`);
     console.log(`  ${chalk.bold('Hostname'.padEnd(15))} ${info.hostname || chalk.gray('N/A')}`);
-    console.log(`  ${chalk.bold('MAC Address'.padEnd(15))} ${info.mac || chalk.gray('N/A')}`);
-    console.log(`  ${chalk.bold('Vendor'.padEnd(15))} ${info.vendor || chalk.gray('N/A')}`);
+    console.log(`  ${chalk.bold('MAC Address'.padEnd(15))} ${mac || chalk.gray('N/A')}`);
+    console.log(`  ${chalk.bold('Vendor'.padEnd(15))} ${vendorName || chalk.gray('N/A')}`);
     console.log(`  ${chalk.bold('Status'.padEnd(15))} ${info.status !== false ? chalk.green('Online') : chalk.red('Offline')}`);
+    if (nickname) console.log(`  ${chalk.bold('Nickname'.padEnd(15))} ${chalk.yellow(nickname)}`);
+    console.log(`  ${chalk.bold('Trusted'.padEnd(15))} ${trusted ? chalk.green('Yes') : chalk.dim('No')}`);
 
     if (stored && stored.lastSeen) {
       console.log(`  ${chalk.bold('First Seen'.padEnd(15))} ${new Date(stored.firstSeen).toLocaleString()}`);
