@@ -4,9 +4,14 @@ const store = require('../config/store');
 const formatter = require('../utils/formatter');
 const system = require('../utils/system');
 const network = require('../utils/network');
+const htmlReportService = require('../services/htmlreport');
 
 const reportCommand = {
   generate(period) {
+    if (period === 'html') {
+      this.htmlReport();
+      return;
+    }
     const validPeriods = ['today', 'week', 'month'];
     if (!validPeriods.includes(period)) {
       console.log(chalk.red(`  Invalid period: ${period}. Use: today, week, month`));
@@ -88,6 +93,17 @@ const reportCommand = {
       console.log(`  ${chalk.gray('  For now, use CSV export: ln export csv')}`);
     }
     console.log('');
+  },
+
+  htmlReport() {
+    console.log('');
+    formatter.heading('Generating HTML Report...');
+    try {
+      const filePath = htmlReportService.generate();
+      console.log(`  ${chalk.green('\u2713')} Report saved: ${chalk.cyan(filePath)}\n`);
+    } catch (err) {
+      console.log(`  ${chalk.red('\u2717')} Failed: ${err.message}\n`);
+    }
   }
 };
 

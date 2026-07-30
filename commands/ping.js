@@ -2,12 +2,19 @@ const chalk = require('chalk');
 const ora = require('ora');
 const pingService = require('../services/ping');
 const formatter = require('../utils/formatter');
+const latencyCommand = require('./latency');
 
 const pingCommand = {
-  async execute(host) {
+  async execute(host, options) {
     if (!host) {
       console.log(chalk.red('  Error: Please specify a host to ping.'));
       console.log(chalk.gray('  Usage: ln ping <host>'));
+      console.log(chalk.gray('  Usage: ln ping --stats <host>  (extended statistics)'));
+      return;
+    }
+
+    if (options && options.stats) {
+      await latencyCommand.stats(host);
       return;
     }
 

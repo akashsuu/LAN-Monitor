@@ -5,6 +5,8 @@ const pingService = require('../services/ping');
 const scanService = require('../services/scan');
 const store = require('../config/store');
 const vendor = require('../services/vendor');
+const macrandom = require('../services/macrandom');
+const osDetection = require('../services/osdetect');
 
 async function getDeviceInfo(ip) {
   const info = { ip };
@@ -34,6 +36,18 @@ async function getDeviceInfo(ip) {
 
   if (!info.vendor && info.mac) {
     info.vendor = vendor.lookupVendor(info.mac);
+  }
+
+  if (info.mac) {
+    info.macType = macrandom.detectMACType(info.mac);
+  }
+
+  info.groups = [];
+  const groups = store.getGroups();
+  for (const [gname, gdata] of Object.entries(groups)) {
+    if (gdata.devices.includes(ip)) {
+      info.groups.push(gname);
+    }
   }
 
   return info;
@@ -85,9 +99,40 @@ const infoCommand = {
     if (info.deviceType) {
       table.push(['Device Type', info.deviceType]);
     }
+    if (info.macType) {
+      const macLabel = info.macType.isRandomized ? chalk.yellow(info.macType.type) : info.macType.type === 'Permanent' ? chalk.green(info.macType.type) : chalk.dim(info.macType.type);
+      table.push(['MAC Type', macLabel]);
+    }
+    if (info.groups && info.groups.length > 0) {
+      table.push(['Groups', info.groups.join(', ')]);
+    }
 
     console.log(table.toString());
     console.log();
+
+    if (info.macType && info.macType.isRandomized) {
+      console.log(`  ${chalk.yellow('\u26A0 Warning:')} ${chalk.dim('Randomized/Private MAC detected.')}`);
+      console.log(`  ${chalk.dim('  ' + info.macType.reason)}`);
+      console.log(`  ${chalk.dim('  This MAC address may change over time (privacy feature).')}`);
+      console.log();
+    }
+
+    const osResult = await osDetection.detect(ip);
+    if (osResult.confidence > 30) {
+      const Table2 = require('cli-table3');
+      const osTable = new Table2({
+        style: { head: ['cyan'], border: ['gray'] },
+        colWidths: [18, 50]
+      });
+      osTable.push(['OS Guess', chalk.cyan(osResult.os)]);
+      osTable.push(['Confidence', osResult.confidence >= 70 ? chalk.green(osResult.confidence + '%') : osResult.confidence >= 40 ? chalk.yellow(osResult.confidence + '%') : chalk.dim(osResult.confidence + '%')]);
+      osTable.push(['Reasons', osResult.reasons.join(', ') || chalk.gray('N/A')]);
+      if (osResult.openPorts.length > 0) {
+        osTable.push(['Open Ports', osResult.openPorts.join(', ')]);
+      }
+      console.log(osTable.toString());
+      console.log();
+    }
   }
 };
 

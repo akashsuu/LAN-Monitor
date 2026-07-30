@@ -11,6 +11,7 @@ const ALERTS_FILE = path.join(CONFIG_DIR, 'alerts.json');
 const HISTORY_FILE = path.join(CONFIG_DIR, 'history.json');
 const NICKNAMES_FILE = path.join(CONFIG_DIR, 'nicknames.json');
 const TRUST_FILE = path.join(CONFIG_DIR, 'trust.json');
+const GROUPS_FILE = path.join(CONFIG_DIR, 'groups.json');
 const LOG_DIR = path.join(CONFIG_DIR, 'logs');
 
 const DEFAULTS = {
@@ -266,6 +267,46 @@ const store = {
     if (!mac) return false;
     const trusted = this.getTrusted();
     return trusted.some(t => t.mac === mac.toUpperCase());
+  },
+
+  getGroups() {
+    return readJSON(GROUPS_FILE, {});
+  },
+
+  createGroup(name) {
+    const groups = this.getGroups();
+    if (groups[name]) return false;
+    groups[name] = { name, devices: [], created: new Date().toISOString() };
+    return writeJSON(GROUPS_FILE, groups);
+  },
+
+  deleteGroup(name) {
+    const groups = this.getGroups();
+    if (!groups[name]) return false;
+    delete groups[name];
+    return writeJSON(GROUPS_FILE, groups);
+  },
+
+  addDeviceToGroup(groupName, ip) {
+    const groups = this.getGroups();
+    if (!groups[groupName]) return false;
+    if (groups[groupName].devices.includes(ip)) return false;
+    groups[groupName].devices.push(ip);
+    return writeJSON(GROUPS_FILE, groups);
+  },
+
+  removeDeviceFromGroup(groupName, ip) {
+    const groups = this.getGroups();
+    if (!groups[groupName]) return false;
+    groups[groupName].devices = groups[groupName].devices.filter(d => d !== ip);
+    return writeJSON(GROUPS_FILE, groups);
+  },
+
+  getDevicesInGroup(groupName) {
+    const groups = this.getGroups();
+    if (!groups[groupName]) return [];
+    const allDevices = this.getDevices();
+    return allDevices.filter(d => groups[groupName].devices.includes(d.ip));
   },
 
   getLogDir() {

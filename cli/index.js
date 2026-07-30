@@ -23,6 +23,11 @@ const infoCommand = require('../commands/info');
 const topologyCommand = require('../commands/topology');
 const trustCommand = require('../commands/trust');
 const nicknameCommand = require('../commands/nickname');
+const osCommand = require('../commands/os');
+const trafficCommand = require('../commands/traffic');
+const latencyCommand = require('../commands/latency');
+const findCommand = require('../commands/find');
+const groupCommand = require('../commands/group');
 
 function createCLI() {
   program
@@ -53,7 +58,8 @@ function createCLI() {
   program
     .command('ping <host>')
     .description('Ping a host to check connectivity and latency')
-    .action((host) => pingCommand.execute(host));
+    .option('--stats', 'Show extended latency statistics (packet loss, jitter, graph)')
+    .action((host, options) => pingCommand.execute(host, options));
 
   program
     .command('scan')
@@ -136,27 +142,30 @@ function createCLI() {
 
   program
     .command('port')
-    .description('Check port status and monitor ports')
-    .hook('preAction', (thisCommand) => {
-      const args = thisCommand.args;
-      if (args[0] === 'monitor') return;
-      if (args.length < 2) {
+    .description('Check port status and scan ports')
+    .argument('[host]', 'Hostname or IP address')
+    .argument('[port]', 'Port number')
+    .option('--top100', 'Scan top 100 ports (with scan subcommand)')
+    .option('--all', 'Scan all 65535 ports (with scan subcommand)')
+    .option('--fast', 'Quick scan of 28 key ports (with scan subcommand)')
+    .option('--no-service', 'Skip service detection')
+    .option('--export', 'Export scan results to JSON')
+    .action((host, port, options) => {
+      if (host === 'monitor') {
+        portCommand.monitor();
+      } else if (host === 'scan' && port) {
+        portCommand.scan(port, options);
+      } else if (host && port) {
+        portCommand.check(host, port);
+      } else {
         console.log(chalk.yellow('\n  Usage: ln port <host> <port>\n'));
         console.log(chalk.bold('  Examples:\n'));
         console.log('    ln port localhost 25565');
-        console.log('    ln port localhost 80');
-        console.log('    ln ports localhost');
+        console.log('    ln port scan 192.168.1.1');
+        console.log('    ln port scan 192.168.1.1 --fast');
+        console.log('    ln port scan 192.168.1.1 --top100');
+        console.log('    ln port scan 192.168.1.1 --all');
         console.log('    ln port monitor\n');
-        process.exit(0);
-      }
-    })
-    .argument('[host]', 'Hostname or IP address')
-    .argument('[port]', 'Port number')
-    .action((host, port) => {
-      if (host === 'monitor') {
-        portCommand.monitor();
-      } else if (host && port) {
-        portCommand.check(host, port);
       }
     });
 
@@ -200,9 +209,10 @@ function createCLI() {
 
   program
     .command('dashboard')
-    .description('Start the React dashboard')
+    .description('Start the dashboard (use --live for real-time terminal dashboard)')
     .option('--open', 'Open dashboard in browser')
     .option('--stop', 'Stop the dashboard')
+    .option('--live', 'Show real-time live dashboard in terminal')
     .action((options) => dashboardCommand.execute(options));
 
   program
@@ -216,7 +226,7 @@ function createCLI() {
   program
     .command('report')
     .description('Generate network reports')
-    .argument('[period]', 'Report period: today, week, month')
+    .argument('[period]', 'Report period: today, week, month, html')
     .action((period) => reportCommand.generate(period || 'today'));
 
   program
@@ -283,6 +293,38 @@ function createCLI() {
     .argument('[name]', 'Nickname to set')
     .action((command, arg, name) => {
       nicknameCommand.execute(command || 'list', arg, name);
+    });
+
+  program
+    .command('os <ip>')
+    .description('Detect operating system of a device via TTL, ports, banners')
+    .action((ip) => osCommand.execute(ip));
+
+  program
+    .command('traffic')
+    .description('Monitor live network traffic (upload/download speeds)')
+    .argument('[duration]', 'Monitoring duration in seconds (default: 30)')
+    .action((duration) => trafficCommand.execute(duration));
+
+  program
+    .command('latency <host>')
+    .description('Run a detailed latency test with packet loss and jitter measurement')
+    .option('-c, --count <n>', 'Number of packets to send', '10')
+    .action((host, options) => latencyCommand.execute(host, options));
+
+  program
+    .command('find <keyword>')
+    .description('Search devices by IP, MAC, vendor, hostname, nickname, or status')
+    .action((keyword) => findCommand.execute(keyword));
+
+  program
+    .command('group')
+    .description('Manage device groups for organization')
+    .argument('[command]', 'Subcommand: create, delete, add, remove, list, show')
+    .argument('[name]', 'Group name')
+    .argument('[arg]', 'IP address or target')
+    .action((command, name, arg) => {
+      groupCommand.execute(command || 'list', name, arg);
     });
 
   program.parse(process.argv);
