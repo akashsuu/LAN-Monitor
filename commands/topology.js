@@ -42,8 +42,10 @@ const topologyCommand = {
     console.log(`  ${chalk.bold('Connected Devices:')}\n`);
 
     const sorted = [...devices].sort((a, b) => {
-      const aNum = parseInt(a.ip.split('.')[3], 10);
-      const bNum = parseInt(b.ip.split('.')[3], 10);
+      const aParts = (a.ip || '').split('.');
+      const bParts = (b.ip || '').split('.');
+      const aNum = parseInt(aParts[3], 10) || 0;
+      const bNum = parseInt(bParts[3], 10) || 0;
       return aNum - bNum;
     });
 
