@@ -39,15 +39,12 @@ const dashboardCommand = {
   },
 
   liveDashboard() {
-    let prevAlertCount = store.getAlerts().length;
-    let prevDeviceCount = store.getDevices().length;
-    let scanComplete = true;
+    let initialRender = true;
 
     const render = async () => {
       const now = new Date().toLocaleTimeString();
       const devices = store.getDevices();
       const alerts = store.getAlerts();
-      const config = store.getConfig();
       const nicknames = store.getNicknames();
       const traffic = trafficService.getTrafficSnapshot() || { uploadSpeed: 0, downloadSpeed: 0, cpuPercent: 0, memoryPercent: 0 };
       const avgTraffic = trafficService.getAverage();
@@ -84,7 +81,12 @@ const dashboardCommand = {
       const healthScore = Math.max(0, Math.min(100, 100 - (offlineCount * 5) - (internetOK ? 0 : 20) + (traffic.cpuPercent > 90 ? -10 : 0)));
       const gw = network.getGateway();
 
-      process.stdout.write('\x1B[2J\x1B[0f');
+      if (!initialRender) {
+        process.stdout.cursorTo(0, 0);
+        process.stdout.write('\x1B[J');
+      }
+      initialRender = false;
+
       process.stdout.write('\n');
       process.stdout.write(chalk.bold.cyan(`  ${'\u2594'.repeat(Math.min(50, process.stdout.columns / 2 - 5 || 50))}\n`));
       process.stdout.write(chalk.bold.cyan(`  LAN MONITOR DASHBOARD`));
@@ -151,7 +153,8 @@ const dashboardCommand = {
 
     process.on('SIGINT', () => {
       clearInterval(timer);
-      process.stdout.write('\x1B[2J\x1B[0f');
+      process.stdout.cursorTo(0, 0);
+      process.stdout.write('\x1B[J');
       console.log(chalk.yellow('\n  Dashboard closed.\n'));
       process.exit(0);
     });

@@ -42,7 +42,8 @@ const watchService = {
 
         const now = new Date().toLocaleTimeString();
         if (newDevices.length > 0 || goneDevices.length > 0) {
-          process.stdout.write('\x1B[2J\x1B[0f');
+          process.stdout.cursorTo(0, 2);
+          process.stdout.write('\x1B[J');
           console.log(chalk.cyan.bold('\n  Watch Mode Active\n'));
           console.log(chalk.dim(`  Interval: ${interval}s  |  Last scan: ${now}\n`));
         }
