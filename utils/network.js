@@ -1,5 +1,6 @@
 const { execSync } = require('child_process');
 const os = require('os');
+const dns = require('dns');
 
 const network = {
   isWindows() {
@@ -68,15 +69,8 @@ const network = {
 
   getDNS() {
     try {
-      if (this.isWindows()) {
-        const output = execSync('nslookup google.com 2>nul', { encoding: 'utf8', timeout: 5000 });
-        const dnsMatch = output.match(/Address:\s+([0-9.]+)/);
-        if (dnsMatch) return dnsMatch[1];
-      } else {
-        const output = execSync('cat /etc/resolv.conf', { encoding: 'utf8', timeout: 3000 });
-        const match = output.match(/nameserver\s+(\S+)/);
-        if (match) return match[1];
-      }
+      const servers = dns.getServers();
+      if (servers.length > 0) return servers[0];
     } catch {
     }
     return 'Unknown';

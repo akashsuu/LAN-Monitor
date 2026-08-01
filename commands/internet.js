@@ -66,7 +66,9 @@ const internetCommand = {
     formatter.heading('DNS Information');
     formatter.labelValue('DNS Server', dnsServer);
     formatter.labelValue('DNS Latency', dnsResult.latency !== null ? formatter.ms(dnsResult.latency) : chalk.gray('N/A'));
-    formatter.labelValue('google.com', lookup.addresses.length > 0 ? lookup.addresses[0] : chalk.red('Failed'));
+    formatter.labelValue('google.com', lookup.addresses.length > 0
+      ? lookup.addresses[0]
+      : chalk.red(`Unavailable${lookup.error ? ` (${lookup.error.code})` : ''}`));
     console.log('');
   },
 

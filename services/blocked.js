@@ -1,6 +1,6 @@
-const dns = require('dns');
 const net = require('net');
 const store = require('../config/store');
+const dnsService = require('./dns');
 
 const DEFAULT_SITES = [
   'facebook.com', 'instagram.com', 'twitter.com', 'x.com', 'youtube.com',
@@ -14,18 +14,6 @@ const DEFAULT_SITES = [
 ];
 
 const BASELINE_HOSTS = ['google.com', '1.1.1.1', 'cloudflare.com'];
-
-function resolveHost(hostname) {
-  return new Promise((resolve) => {
-    dns.resolve4(hostname, (err, addresses) => {
-      if (err) {
-        resolve({ ok: false, addresses: [], error: err });
-        return;
-      }
-      resolve({ ok: true, addresses });
-    });
-  });
-}
 
 function connectTest(host, port, timeout = 3000) {
   return new Promise((resolve) => {
@@ -51,18 +39,17 @@ function connectTest(host, port, timeout = 3000) {
 async function checkSite(site) {
   const hostname = site.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
 
-  const dnsResult = await resolveHost(hostname);
-  if (!dnsResult.ok) {
-    const dnsError = dnsResult.error || {};
-    const isNXDOMAIN = dnsError.code === 'ENOTFOUND' || dnsError.code === 'ENODATA';
-    const isNetworkIssue = dnsError.code === 'ECONNREFUSED' || dnsError.code === 'ETIMEOUT' || dnsError.code === 'ENETUNREACH';
+  const dnsResult = await dnsService.lookup(hostname);
+  if (dnsResult.error) {
+    const dnsError = dnsResult.error;
+    const isNetworkIssue = dnsService.isResolverUnavailable(dnsError);
     return {
       site: hostname,
-      blocked: isNXDOMAIN,
-      blockType: isNetworkIssue ? 'DNS Error' : 'DNS Blocked',
+      blocked: false,
+      blockType: isNetworkIssue ? 'DNS Unavailable' : 'DNS Failed',
       reason: isNetworkIssue
-        ? `DNS server unreachable (${dnsError.code}) - possible network issue`
-        : 'DNS resolution failed - domain blocked or nonexistent',
+        ? `DNS resolver is unreachable (${dnsError.code}); this environment may block DNS requests`
+        : `DNS resolution failed (${dnsError.code})`,
       dnsOK: false,
       connectOK: false,
       latency: null,
@@ -70,7 +57,7 @@ async function checkSite(site) {
     };
   }
 
-  const connect443 = await connectTest(hostname, 443);
+  const connect443 = await connectTest(dnsResult.addresses[0], 443);
   if (connect443.open) {
     return {
       site: hostname,
@@ -83,7 +70,7 @@ async function checkSite(site) {
     };
   }
 
-  const connect80 = await connectTest(hostname, 80);
+  const connect80 = await connectTest(dnsResult.addresses[0], 80);
   if (connect80.open) {
     return {
       site: hostname,
@@ -151,7 +138,7 @@ const blockedService = {
     const reachable = results.filter(r => !r.blocked);
     const dnsBlocked = blocked.filter(r => r.blockType === 'DNS Blocked');
     const connBlocked = blocked.filter(r => r.blockType === 'Connection Blocked');
-    const dnsErrors = results.filter(r => r.blockType === 'DNS Error');
+    const dnsErrors = results.filter(r => r.blockType === 'DNS Unavailable' || r.blockType === 'DNS Failed');
 
     return {
       total: results.length,

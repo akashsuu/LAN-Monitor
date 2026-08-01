@@ -1,12 +1,12 @@
 const chalk = require('chalk');
 const https = require('https');
 const http = require('http');
-const dns = require('dns');
 const net = require('net');
 const ora = require('ora');
 const store = require('../config/store');
 const formatter = require('../utils/formatter');
 const network = require('../utils/network');
+const dnsService = require('../services/dns');
 
 const websiteCommand = {
   add(url) {
@@ -80,7 +80,9 @@ const websiteCommand = {
     formatter.labelValue('Response Time', results.latency !== null ? formatter.ms(results.latency) : chalk.gray('N/A'));
     formatter.labelValue('SSL', results.ssl ? chalk.green('Valid') : chalk.red(results.sslError || 'N/A'));
     formatter.labelValue('SSL Expiry', results.sslExpiry || chalk.gray('N/A'));
-    formatter.labelValue('DNS', results.dns ? chalk.green(results.dns) : chalk.red('Failed'));
+    formatter.labelValue('DNS', results.dns
+      ? chalk.green(results.dns)
+      : chalk.red(`Unavailable${results.dnsError ? ` (${results.dnsError.code})` : ''}`));
     formatter.labelValue('Status', results.online ? chalk.green('Online') : chalk.red('Offline'));
 
     store.addHistoryEntry({
@@ -115,16 +117,14 @@ const websiteCommand = {
     console.log('');
   },
 
-  checkSite(url) {
+  async checkSite(url) {
+    const dnsLookup = await dnsService.lookup(new URL(url).hostname);
     return new Promise((resolve) => {
       const start = Date.now();
       const parsedUrl = new URL(url);
       const proto = parsedUrl.protocol === 'https:' ? https : http;
 
-      let dnsResolved = null;
-      dns.resolve4(parsedUrl.hostname, (err, addresses) => {
-        if (!err && addresses.length > 0) dnsResolved = addresses[0];
-      });
+      const dnsResolved = dnsLookup.addresses[0] || null;
 
       const options = {
         hostname: parsedUrl.hostname,
@@ -160,7 +160,8 @@ const websiteCommand = {
           sslExpiry,
           dns: dnsResolved,
           online: res.statusCode >= 200 && res.statusCode < 500,
-          error: null
+          error: null,
+          dnsError: dnsLookup.error
         });
       });
 
@@ -174,7 +175,8 @@ const websiteCommand = {
           sslExpiry: null,
           dns: dnsResolved,
           online: false,
-          error: err.message
+          error: err.message,
+          dnsError: dnsLookup.error
         });
       });
 
@@ -189,7 +191,8 @@ const websiteCommand = {
           sslExpiry: null,
           dns: dnsResolved,
           online: false,
-          error: 'Timeout'
+          error: 'Timeout',
+          dnsError: dnsLookup.error
         });
       });
 

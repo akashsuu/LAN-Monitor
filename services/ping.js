@@ -1,6 +1,6 @@
 const { exec } = require('child_process');
-const dns = require('dns');
 const network = require('../utils/network');
+const dnsService = require('./dns');
 
 function parsePingWindows(output) {
   const lines = output.split('\n');
@@ -113,15 +113,8 @@ const pingService = {
   },
 
   async resolveDNS(host) {
-    return new Promise((resolve) => {
-      dns.resolve4(host, (err, addresses) => {
-        if (err) {
-          resolve(null);
-        } else {
-          resolve(addresses[0]);
-        }
-      });
-    });
+    const result = await dnsService.lookup(host);
+    return result.addresses[0] || null;
   }
 };
 

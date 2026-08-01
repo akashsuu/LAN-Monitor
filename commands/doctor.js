@@ -46,7 +46,8 @@ const doctorCommand = {
     checks.push({ name: 'DNS Lookup (google.com)', test: async () => {
       try {
         const result = await dnsService.lookup('google.com');
-        return { pass: result.addresses.length > 0, message: result.addresses[0] || 'Failed' };
+        const message = result.addresses[0] || (result.error && result.error.code) || 'Failed';
+        return { pass: result.addresses.length > 0, message };
       } catch {
         return { pass: false, message: 'Failed' };
       }

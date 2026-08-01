@@ -1,8 +1,8 @@
 const https = require('https');
 const http = require('http');
-const dns = require('dns');
 const url = require('url');
 const pingService = require('./ping');
+const dnsService = require('./dns');
 
 const internetService = {
   async getPublicIP() {
@@ -82,13 +82,7 @@ const internetService = {
   },
 
   async measureDNSLatency() {
-    return new Promise((resolve) => {
-      const start = Date.now();
-      dns.resolve4('google.com', (err) => {
-        const latency = Date.now() - start;
-        resolve({ latency, error: err ? err.message : null });
-      });
-    });
+    return dnsService.measureLatency('google.com');
   },
 
   async runSpeedTest(onProgress) {
