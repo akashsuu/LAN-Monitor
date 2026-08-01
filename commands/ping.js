@@ -34,8 +34,9 @@ const pingCommand = {
     const result = await pingService.ping(host, 4);
     spinner.stop();
 
+    const isLocal = require('../utils/network').isLocalIP(host);
     console.log('');
-    console.log(`  ${chalk.bold('PING')} ${chalk.cyan(host)} ${result.resolvedIP ? `(${chalk.gray(result.resolvedIP)})` : ''}`);
+    console.log(`  ${chalk.bold('PING')} ${chalk.cyan(host)}${isLocal ? ' ' + chalk.yellow('(this PC)') : ''} ${result.resolvedIP ? `(${chalk.gray(result.resolvedIP)})` : ''}`);
     formatter.divider();
 
     if (result.replies && result.replies.length > 0) {

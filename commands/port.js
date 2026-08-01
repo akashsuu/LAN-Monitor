@@ -3,6 +3,11 @@ const ora = require('ora');
 const portService = require('../services/port');
 const formatter = require('../utils/formatter');
 const store = require('../config/store');
+const network = require('../utils/network');
+
+function hostLabel(host) {
+  return network.isLocalIP(host) ? `${host} (this PC)` : host;
+}
 
 const portCommand = {
   async check(host, port) {
@@ -22,8 +27,8 @@ const portCommand = {
     const result = await portService.checkPort(host, portNum);
     spinner.stop();
     console.log('');
-    formatter.heading(`Port Check - ${host}:${portNum}`);
-    formatter.labelValue('Host', host);
+    formatter.heading(`Port Check - ${hostLabel(host)}:${portNum}`);
+    formatter.labelValue('Host', hostLabel(host));
     formatter.labelValue('Port', `${portNum} (${result.service})`);
     formatter.labelValue('Status', result.open ? chalk.green('Open') : chalk.red('Closed'));
     formatter.labelValue('Response Time', result.latency !== null ? formatter.ms(result.latency) : chalk.gray('N/A'));
@@ -58,7 +63,7 @@ const portCommand = {
 
     const openPorts = results.open;
     console.log('');
-    formatter.heading(`Port Scan Results - ${host}`);
+    formatter.heading(`Port Scan Results - ${hostLabel(host)}`);
     console.log(`  ${chalk.gray(`Scanned ${results.total} ports, ${results.openCount} open, ${results.closedCount} closed`)}\n`);
 
     if (openPorts.length === 0) {

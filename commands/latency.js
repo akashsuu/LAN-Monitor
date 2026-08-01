@@ -16,7 +16,8 @@ const latencyCommand = {
     const count = (options && options.count) || 10;
     const interval = (options && options.interval) || 0.2;
 
-    console.log(chalk.cyan.bold(`\n  Latency Test: ${host}\n`));
+    const isLocal = require('../utils/network').isLocalIP(host);
+    console.log(chalk.cyan.bold(`\n  Latency Test: ${host}${isLocal ? ' ' + chalk.yellow('(this PC)') : ''}\n`));
     console.log(chalk.dim(`  Sending ${count} packets...\n`));
 
     const timestamps = [];

@@ -236,7 +236,7 @@ const websiteCommand = {
         chars: { 'top': '\u2550', 'top-mid': '\u2564', 'top-left': '\u2554', 'top-right': '\u2557', 'bottom': '\u2550', 'bottom-mid': '\u2567', 'bottom-left': '\u255A', 'bottom-right': '\u255D', 'left': '\u2551', 'left-mid': '\u255F', 'mid': '\u2500', 'mid-mid': '\u253C', 'right': '\u2551', 'right-mid': '\u2562', 'middle': '\u2502' }
       });
       for (const r of results) {
-        table.push([r.host, chalk.cyan(r.port.toString()), `http://${r.host}:${r.port}`]);
+        table.push([formatter.deviceIP(r.host), chalk.cyan(r.port.toString()), `http://${r.host}:${r.port}`]);
       }
       console.log(table.toString());
       console.log('');

@@ -36,7 +36,7 @@ const serverCommand = {
       chars: { 'top': '\u2550', 'top-mid': '\u2564', 'top-left': '\u2554', 'top-right': '\u2557', 'bottom': '\u2550', 'bottom-mid': '\u2567', 'bottom-left': '\u255A', 'bottom-right': '\u255D', 'left': '\u2551', 'left-mid': '\u255F', 'mid': '\u2500', 'mid-mid': '\u253C', 'right': '\u2551', 'right-mid': '\u2562', 'middle': '\u2502' }
     });
     for (const srv of servers) {
-      table.push([srv.name || srv.ip, chalk.cyan(srv.ip), new Date(srv.added).toLocaleDateString()]);
+      table.push([srv.name || srv.ip, formatter.deviceIP(srv.ip), new Date(srv.added).toLocaleDateString()]);
     }
     console.log(table.toString());
     console.log('');

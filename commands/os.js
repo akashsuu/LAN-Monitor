@@ -3,6 +3,7 @@ const osDetection = require('../services/osdetect');
 const formatter = require('../utils/formatter');
 const macrandom = require('../services/macrandom');
 const store = require('../config/store');
+const network = require('../utils/network');
 
 const osCommand = {
   async execute(ip) {
@@ -11,7 +12,8 @@ const osCommand = {
       return;
     }
 
-    console.log(chalk.cyan.bold(`\n  OS Detection: ${ip}\n`));
+    const isLocal = network.isLocalIP(ip);
+    console.log(chalk.cyan.bold(`\n  OS Detection: ${ip}${isLocal ? ' ' + chalk.yellow('(this PC)') : ''}\n`));
 
     const spinner = ['|', '/', '-', '\\'];
     let i = 0;

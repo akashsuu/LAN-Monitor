@@ -60,7 +60,8 @@ const infoCommand = {
       return;
     }
 
-    console.log(chalk.cyan.bold(`\n  Device Information: ${ip}\n`));
+    const isLocal = network.isLocalIP(ip);
+    console.log(chalk.cyan.bold(`\n  Device Information: ${ip}${isLocal ? ' ' + chalk.yellow('(this PC)') : ''}\n`));
 
     const spinner = ['|', '/', '-', '\\'];
     let i = 0;
@@ -78,7 +79,7 @@ const infoCommand = {
       colWidths: [18, 50]
     });
 
-    table.push(['IP Address', info.ip]);
+    table.push(['IP Address', network.isLocalIP(info.ip) ? chalk.cyan(info.ip) + ' ' + chalk.yellow('(this PC)') : chalk.cyan(info.ip)]);
     table.push(['Hostname', info.hostname || chalk.dim('N/A')]);
     table.push(['MAC Address', info.mac || chalk.dim('N/A')]);
     table.push(['Vendor', info.vendor || chalk.dim('N/A')]);

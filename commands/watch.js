@@ -51,13 +51,13 @@ const watchService = {
 
         for (const d of newDevices) {
           const mac = d.mac || 'N/A';
-          console.log(`  ${chalk.green('+')} ${d.ip} ${chalk.dim(mac)} ${d.vendor ? chalk.cyan(d.vendor) : ''}`);
+          console.log(`  ${chalk.green('+')} ${formatter.deviceIP(d.ip)} ${chalk.dim(mac)} ${d.vendor ? chalk.cyan(d.vendor) : ''}`);
           store.addDevice({ ip: d.ip, mac: d.mac, hostname: d.hostname, vendor: d.vendor, status: true });
           historyService.recordDeviceChange(d, 'online');
         }
 
         for (const d of goneDevices) {
-          console.log(`  ${chalk.red('-')} ${d.ip} ${chalk.dim(d.mac || 'N/A')}`);
+          console.log(`  ${chalk.red('-')} ${formatter.deviceIP(d.ip)} ${chalk.dim(d.mac || 'N/A')}`);
           store.updateDevice(d.ip, { online: false });
           historyService.recordDeviceChange(d, 'offline');
         }

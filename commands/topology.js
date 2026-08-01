@@ -13,7 +13,7 @@ const topologyCommand = {
     const gateway = network.getGateway();
     const subnet = scanService.getLocalSubnet();
 
-    console.log(`  ${chalk.bold('Local IP:')}    ${localIP}`);
+    console.log(`  ${chalk.bold('Local IP:')}    ${localIP} ${chalk.yellow('(this PC)')}`);
     console.log(`  ${chalk.bold('Gateway:')}     ${gateway || 'N/A'}`);
     console.log(`  ${chalk.bold('Subnet:')}      ${subnet}`);
     console.log();
@@ -53,13 +53,15 @@ const topologyCommand = {
     let hasSwitch = false;
 
     for (const d of sorted) {
-      if (d.ip === localIP || d.ip === gwIP) continue;
+      if (d.ip === gwIP) continue;
+      const isLocal = d.ip === localIP;
       const isOnline = d.online || d.status;
       const statusIcon = isOnline ? chalk.green('●') : chalk.red('○');
       const vendorStr = d.vendor ? chalk.dim(` (${d.vendor})`) : '';
       const nameStr = d.hostname || d.mac || '';
       const shortName = nameStr.length > 20 ? nameStr.substring(0, 20) + '…' : nameStr;
-      treeLines.push(`    ${statusIcon} ${d.ip} ${chalk.cyan(d.mac ? d.mac : '')}${vendorStr} ${shortName ? chalk.dim(shortName) : ''}`);
+      const label = isLocal ? ` ${chalk.yellow('(this PC)')}` : '';
+      treeLines.push(`    ${statusIcon} ${d.ip}${label} ${chalk.cyan(d.mac ? d.mac : '')}${vendorStr} ${shortName ? chalk.dim(shortName) : ''}`);
       if (!hasSwitch && d.vendor && ['cisco', 'netgear', 'tp-link', 'd-link', 'linksys', 'ubiquiti', 'aruba', 'hp'].some(v => (d.vendor || '').toLowerCase().includes(v))) {
         hasSwitch = true;
       }
