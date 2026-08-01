@@ -12,6 +12,7 @@ const HISTORY_FILE = path.join(CONFIG_DIR, 'history.json');
 const NICKNAMES_FILE = path.join(CONFIG_DIR, 'nicknames.json');
 const TRUST_FILE = path.join(CONFIG_DIR, 'trust.json');
 const GROUPS_FILE = path.join(CONFIG_DIR, 'groups.json');
+const BLOCKED_SITES_FILE = path.join(CONFIG_DIR, 'blocked-sites.json');
 const LOG_DIR = path.join(CONFIG_DIR, 'logs');
 
 const DEFAULTS = {
@@ -307,6 +308,30 @@ const store = {
     if (!groups[groupName]) return [];
     const allDevices = this.getDevices();
     return allDevices.filter(d => groups[groupName].devices.includes(d.ip));
+  },
+
+  getBlockedSites() {
+    return readJSON(BLOCKED_SITES_FILE, []);
+  },
+
+  addBlockedSite(site) {
+    const sites = this.getBlockedSites();
+    const cleaned = site.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+    if (!sites.includes(cleaned)) {
+      sites.push(cleaned);
+      return writeJSON(BLOCKED_SITES_FILE, sites);
+    }
+    return false;
+  },
+
+  removeBlockedSite(site) {
+    const sites = this.getBlockedSites();
+    const cleaned = site.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+    const filtered = sites.filter(s => s !== cleaned);
+    if (filtered.length < sites.length) {
+      return writeJSON(BLOCKED_SITES_FILE, filtered);
+    }
+    return false;
   },
 
   getLogDir() {

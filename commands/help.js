@@ -66,6 +66,7 @@ const helpCommand = {
     output.push('    ln nickname          Manage device nicknames');
     output.push('    ln trust             Manage trusted devices');
     output.push('    ln group             Manage device groups');
+    output.push('    ln blocked           Detect blocked sites in this LAN');
     output.push('');
     output.push(chalk.gray('  For detailed help on any command, use: ln <command> --help'));
     output.push('');

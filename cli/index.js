@@ -28,6 +28,7 @@ const trafficCommand = require('../commands/traffic');
 const latencyCommand = require('../commands/latency');
 const findCommand = require('../commands/find');
 const groupCommand = require('../commands/group');
+const blockedCommand = require('../commands/blocked');
 
 function createCLI() {
   program
@@ -325,6 +326,15 @@ function createCLI() {
     .argument('[arg]', 'IP address or target')
     .action((command, name, arg) => {
       groupCommand.execute(command || 'list', name, arg);
+    });
+
+  program
+    .command('blocked')
+    .description('Detect how many sites are blocked in this LAN')
+    .argument('[command]', 'Subcommand: scan, check, list, add, remove')
+    .argument('[arg]', 'Site for the subcommand')
+    .action((command, arg) => {
+      blockedCommand.execute(command, arg);
     });
 
   program.parse(process.argv);
