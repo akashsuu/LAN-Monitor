@@ -96,6 +96,31 @@ const network = {
     });
   },
 
+  isLocalIP(ip) {
+    if (!ip) return false;
+    if (ip === '127.0.0.1' || ip === 'localhost' || ip === '::1') return true;
+    const interfaces = os.networkInterfaces();
+    for (const name of Object.keys(interfaces)) {
+      for (const iface of interfaces[name]) {
+        if (iface.address === ip) return true;
+      }
+    }
+    return false;
+  },
+
+  getLocalIPs() {
+    const ips = ['127.0.0.1', 'localhost', '::1'];
+    const interfaces = os.networkInterfaces();
+    for (const name of Object.keys(interfaces)) {
+      for (const iface of interfaces[name]) {
+        if (iface.family === 'IPv4') {
+          ips.push(iface.address);
+        }
+      }
+    }
+    return [...new Set(ips)];
+  },
+
   isValidHostname(str) {
     return /^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)*$/.test(str);
   }

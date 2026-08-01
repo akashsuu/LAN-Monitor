@@ -48,7 +48,7 @@ const scanCommand = {
         displayedIps.add(device.ip);
         const status = device.status !== false ? chalk.green('Online') : chalk.red('Offline');
         table.push([
-          chalk.cyan(device.ip),
+          formatter.deviceIP(device.ip),
           device.hostname || chalk.gray('-'),
           device.mac || chalk.gray('-'),
           device.vendor || chalk.gray('-'),

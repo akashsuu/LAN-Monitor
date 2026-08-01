@@ -43,6 +43,14 @@ const formatter = {
     return open ? chalk.green('Open') : chalk.red('Closed');
   },
 
+  deviceIP(ip) {
+    const network = require('./network');
+    if (network.isLocalIP(ip)) {
+      return chalk.cyan(ip) + ' ' + chalk.yellow('(this PC)');
+    }
+    return chalk.cyan(ip);
+  },
+
   heading(text) {
     console.log(chalk.bold.cyan(`\n  ${text}\n`));
   },

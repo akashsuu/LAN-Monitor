@@ -2,6 +2,7 @@ const chalk = require('chalk');
 const Table = require('cli-table3');
 const store = require('../config/store');
 const vendor = require('../services/vendor');
+const formatter = require('../utils/formatter');
 
 function normalize(s) {
   return String(s || '').toLowerCase();
@@ -80,7 +81,7 @@ const findCommand = {
       const nick = d.mac ? nicknames[d.mac.toUpperCase()] : '';
       const status = (d.online || d.status) ? chalk.green('Online') : chalk.red('Offline');
       table.push([
-        chalk.cyan(d.ip || '?'),
+        formatter.deviceIP(d.ip || '?'),
         d.mac || chalk.gray('-'),
         d.vendor || chalk.gray('-'),
         nick || chalk.gray('-'),

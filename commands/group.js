@@ -1,6 +1,7 @@
 const chalk = require('chalk');
 const Table = require('cli-table3');
 const store = require('../config/store');
+const formatter = require('../utils/formatter');
 
 const groupCommand = {
   async execute(command, name, arg) {
@@ -129,7 +130,7 @@ const groupCommand = {
 
     for (const d of devices) {
       table.push([
-        chalk.cyan(d.ip || '?'),
+        formatter.deviceIP(d.ip || '?'),
         d.mac || chalk.gray('-'),
         d.vendor || chalk.gray('-'),
         (d.online || d.status) ? chalk.green('Online') : chalk.red('Offline')

@@ -2,6 +2,7 @@ const chalk = require('chalk');
 const ora = require('ora');
 const store = require('../config/store');
 const scanService = require('../services/scan');
+const formatter = require('../utils/formatter');
 
 const devicesCommand = {
   async list(options) {
@@ -67,7 +68,7 @@ const devicesCommand = {
       const trusted = device.mac ? store.isTrusted(device.mac) : false;
       const trustMark = trusted ? chalk.green(' ✓') : '';
       table.push([
-        chalk.cyan(device.ip || '?'),
+        formatter.deviceIP(device.ip || '?'),
         displayName + trustMark,
         device.mac || chalk.gray('-'),
         device.vendor || chalk.gray('-'),
@@ -95,7 +96,7 @@ const devicesCommand = {
     }
 
     console.log('');
-    console.log(`  ${chalk.bold('Device Details')} ${chalk.gray('- ' + ip)}`);
+    console.log(`  ${chalk.bold('Device Details')} ${chalk.gray('- ')}${formatter.deviceIP(ip)}`);
     console.log(`  ${chalk.gray('\u2500'.repeat(40))}`);
 
     const info = device.ip ? device : stored;
@@ -103,7 +104,7 @@ const devicesCommand = {
     const nickname = mac ? store.getNicknames()[mac.toUpperCase()] : '';
     const trusted = mac ? store.isTrusted(mac) : false;
     const vendorName = info.vendor || require('../services/vendor').lookupVendor(mac);
-    console.log(`  ${chalk.bold('IP Address'.padEnd(15))} ${info.ip || chalk.gray('N/A')}`);
+    console.log(`  ${chalk.bold('IP Address'.padEnd(15))} ${info.ip ? formatter.deviceIP(info.ip) : chalk.gray('N/A')}`);
     console.log(`  ${chalk.bold('Hostname'.padEnd(15))} ${info.hostname || chalk.gray('N/A')}`);
     console.log(`  ${chalk.bold('MAC Address'.padEnd(15))} ${mac || chalk.gray('N/A')}`);
     console.log(`  ${chalk.bold('Vendor'.padEnd(15))} ${vendorName || chalk.gray('N/A')}`);

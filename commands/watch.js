@@ -3,6 +3,7 @@ const scanService = require('../services/scan');
 const store = require('../config/store');
 const logger = require('../services/logging');
 const historyService = require('../services/history');
+const formatter = require('../utils/formatter');
 
 const watchService = {
   async execute(options) {
