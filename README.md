@@ -1,13 +1,12 @@
 # LAN Monitor
 
-A professional network monitoring CLI built with Node.js.
+LAN Monitor is a Node.js command-line tool for inspecting your local network, testing connectivity, monitoring websites and servers, and checking whether commonly used sites are reachable from the current network.
 
 ```bash
+ln doctor
 ln ping google.com
 ln scan
-ln website
-ln server
-ln speed
+ln blocked scan
 ```
 
 ## Installation
@@ -19,88 +18,120 @@ npm install
 node index.js help
 ```
 
-For global `ln` command:
+To use the short `ln` command globally:
+
 ```bash
 npm install -g .
+ln help
 ```
+
+Without global installation, replace `ln` in the examples below with `node index.js`.
+
+## Quick Start
+
+```bash
+# Check the local network, DNS, and internet access
+ln doctor
+ln internet
+
+# Ping a domain or IP address
+ln ping google.com
+ln ping 192.168.1.1
+
+# Find devices on the LAN
+ln scan
+
+# Check sites that may be blocked on this network
+ln blocked scan
+```
+
+## Blocked-Site Checks
+
+`ln blocked` checks 261 built-in domains across social media, streaming, gaming, shopping, AI, work tools, news, dating, and adult-content categories. A scan prints the names of sites detected as blocked.
+
+| Command | What it does |
+|---------|--------------|
+| `ln blocked` | Scan the full built-in and custom checklist |
+| `ln blocked scan` | Scan the full built-in and custom checklist |
+| `ln blocked check <site>` | Check one domain, for example `ln blocked check youtube.com` |
+| `ln blocked list` | Print all domains in the checklist |
+| `ln blocked add <site>` | Add a custom domain to future scans |
+| `ln blocked remove <site>` | Remove a custom domain from future scans |
+
+Example:
+
+```bash
+ln blocked check youtube.com
+ln blocked add example.com
+ln blocked scan
+```
+
+DNS failures are shown separately from blocked sites, so a sandbox or network that blocks DNS does not incorrectly mark every domain as blocked.
+
+## DNS in Restricted Sandboxes
+
+Some sandboxes permit HTTPS requests but block ordinary DNS traffic. LAN Monitor tries the system resolver first. If it is unavailable, it uses a DNS-over-HTTPS fallback automatically.
+
+```bash
+ln dns
+ln doctor
+```
+
+The DNS command shows the configured DNS server and whether resolution used the system resolver or the DNS-over-HTTPS fallback.
 
 ## Commands
 
-### Root
+### Diagnostics and network
+
 | Command | Description |
 |---------|-------------|
 | `ln help` | Display all commands |
-| `ln status` | System & connectivity overview |
-| `ln doctor` | Run diagnostics |
-| `ln update` | Check for updates |
-
-### Network
-| Command | Description |
-|---------|-------------|
-| `ln ping <host>` | Ping a host |
-| `ln scan [subnet]` | Scan local network |
+| `ln status` | System and connectivity overview |
+| `ln doctor` | Run system diagnostics |
+| `ln ping <host>` | Ping a host and show latency |
+| `ln scan [subnet]` | Scan the local network |
 | `ln devices` | List known devices |
-| `ln device <ip>` | Show device details |
+| `ln device <ip>` | Show details for one device |
 | `ln port <host> <port>` | Check a port |
 | `ln ports <host>` | Scan common ports |
 
-### Websites
+### Website and server monitoring
+
 | Command | Description |
 |---------|-------------|
-| `ln website` | Scan local network for web servers |
+| `ln website` | Scan the local network for web servers |
 | `ln website scan <host>` | Scan a host for web ports |
-| `ln website scan <host:port>` | Check a specific host:port |
-| `ln website scan <subnet/24>` | Scan subnet for web servers |
-| `ln website add <url>` | Add website to monitor |
-| `ln website remove <name>` | Remove a website |
+| `ln website scan <host:port>` | Check one web port |
+| `ln website add <url>` | Add a website to monitor |
 | `ln website list` | List monitored websites |
-| `ln website check <name>` | Check website (HTTP, SSL, DNS) |
-| `ln website history <name>` | Show check history |
-
-### Servers
-| Command | Description |
-|---------|-------------|
-| `ln server` | Scan local network for servers |
+| `ln website check <name>` | Check HTTP, SSL, and DNS status |
+| `ln server` | Scan the local network for servers |
 | `ln server scan <host>` | Scan a host for open ports |
-| `ln server scan <host:port>` | Check a specific port |
 | `ln server add <ip>` | Add a server |
-| `ln server list` | List servers |
-| `ln server stats <name>` | Server stats |
-| `ln server remove <name>` | Remove a server |
+| `ln server list` | List monitored servers |
 
-### Info
+### Internet information
+
 | Command | Description |
 |---------|-------------|
-| `ln ethernet` | Network adapter info |
-| `ln internet` | Internet status |
-| `ln publicip` | Show public IP |
-| `ln gateway` | Show gateway |
-| `ln dns` | DNS info |
-| `ln speed` | Speed test (download/upload/ping) |
+| `ln internet` | Show internet status |
+| `ln publicip` | Show the public IP address |
+| `ln gateway` | Show the default gateway |
+| `ln dns` | Show DNS configuration and lookup status |
+| `ln speed` | Run a download, upload, and ping test |
+| `ln ethernet` | Show network adapter information |
 
 ### Management
+
 | Command | Description |
 |---------|-------------|
-| `ln dashboard` | Start dashboard |
+| `ln dashboard` | Start the dashboard |
 | `ln alerts` | Manage alerts |
-| `ln report [today\|week\|month]` | Generate report |
+| `ln report [today\|week\|month]` | Generate a report |
 | `ln export <csv\|pdf>` | Export data |
-| `ln config [show\|set\|reset]` | Configuration |
-
-## Structure
-
-```
-lan-monitor/
-├── index.js              # Entry point
-├── cli/index.js          # Commander.js setup
-├── commands/             # Command modules (16 files)
-├── services/             # Business logic (6 files)
-├── utils/                # Helpers (4 files)
-├── config/store.js       # JSON config storage
-└── logs/                 # Log files
-```
+| `ln config [show\|set\|reset]` | View or change configuration |
 
 ## Requirements
 
-- Node.js >= 14
-- Windows / Linux / macOS
+- Node.js 14 or newer
+- Windows, Linux, or macOS
