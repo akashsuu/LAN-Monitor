@@ -81,9 +81,16 @@ const blockedCommand = {
         table.push([r.site, type, chalk.dim(r.reason)]);
       }
       console.log(table.toString());
+      console.log(`\n  ${chalk.bold('Blocked site names:')} ${result.blocked.map(r => r.site).join(', ')}`);
     } else {
       console.log('');
       console.log(`  ${chalk.green('\u2713 No blocked sites detected in this LAN.')}`);
+    }
+
+    if (result.dnsErrors.length > 0) {
+      console.log('');
+      formatter.heading(`DNS-Unavailable Sites (${result.dnsErrors.length})`);
+      console.log(`  ${chalk.yellow(result.dnsErrors.map(r => r.site).join(', '))}`);
     }
     console.log('');
   },

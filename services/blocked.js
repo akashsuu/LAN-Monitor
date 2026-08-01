@@ -9,6 +9,8 @@ const DEFAULT_SITES = [
   'discord.com', 'pinterest.com', 'linkedin.com', 'tumblr.com', 'threads.net',
   'mastodon.social', 'quora.com', 'medium.com', 'flickr.com', 'deviantart.com',
   'vk.com', 'weibo.com', 'weibo.cn', 'bsky.app', 'nextdoor.com',
+  'messenger.com', 'signal.org', 'line.me', 'viber.com', 'wechat.com', 'imo.im',
+  'kakaotalk.com', 'clubhouse.com', 'meetup.com', 'aminoapps.com', 'discordapp.com',
 
   // Video, music, and live streaming
   'netflix.com', 'spotify.com', 'twitch.tv', 'dailymotion.com', 'vimeo.com',
@@ -16,18 +18,25 @@ const DEFAULT_SITES = [
   'paramountplus.com', 'crunchyroll.com', 'soundcloud.com', 'music.apple.com',
   'pandora.com', 'deezer.com', 'jiosaavn.com', 'hotstar.com', 'zee5.com',
   'sonyliv.com', 'mxplayer.in',
+  'tubitv.com', 'pluto.tv', 'roku.com', 'tv.apple.com', 'mubi.com', 'curiositystream.com',
+  'bandcamp.com', 'tidal.com', 'last.fm', 'gaana.com', 'wynk.in', 'audiomack.com',
 
   // Games and gaming communities
   'roblox.com', 'epicgames.com', 'steampowered.com', 'store.steampowered.com',
   'minecraft.net', 'playstation.com', 'xbox.com', 'nintendo.com', 'ea.com',
   'ubisoft.com', 'riotgames.com', 'battle.net', 'valorant.com', 'fortnite.com',
   'chess.com', 'discord.gg',
+  'leagueoflegends.com', 'genshin.hoyoverse.com', 'hoyoverse.com', 'rockstargames.com',
+  'take2games.com', 'itch.io', 'gamejolt.com', 'kongregate.com', 'miniclip.com',
+  'crazygames.com', 'poki.com', 'twitchcdn.net',
 
   // Shopping, payments, and food delivery
   'amazon.com', 'ebay.com', 'paypal.com', 'walmart.com', 'target.com',
   'etsy.com', 'aliexpress.com', 'temu.com', 'flipkart.com', 'myntra.com',
   'meesho.com', 'snapdeal.com', 'shopify.com', 'instacart.com', 'doordash.com',
   'swiggy.com', 'zomato.com',
+  'bestbuy.com', 'costco.com', 'wayfair.com', 'shein.com', 'wish.com', 'lazada.com',
+  'shopee.com', 'olx.in', 'bigbasket.com', 'nykaa.com', 'zepto.com', 'blinkit.com',
 
   // Search, email, developer, AI, and cloud services
   'wikipedia.org', 'github.com', 'gitlab.com', 'bitbucket.org', 'stackoverflow.com',
@@ -36,16 +45,34 @@ const DEFAULT_SITES = [
   'perplexity.ai', 'character.ai', 'huggingface.co', 'cloudflare.com', 'microsoft.com',
   'office.com', 'dropbox.com', 'drive.google.com', 'onedrive.live.com', 'notion.so',
   'canva.com', 'figma.com', 'slack.com', 'zoom.us', 'teams.microsoft.com',
+  'proton.me', 'protonmail.com', 'mail.yahoo.com', 'outlook.com', 'icloud.com', 'mega.io',
+  'box.com', 'mediafire.com', 'wetransfer.com', 'trello.com', 'asana.com', 'monday.com',
+  'airtable.com', 'miro.com', 'linear.app', 'vercel.com', 'netlify.com', 'replit.com',
+  'codepen.io', 'codesandbox.io', 'stackoverflow.blog',
 
   // News, forums, and blogs
   'news.google.com', 'bbc.com', 'cnn.com', 'nytimes.com', 'theguardian.com',
   'reuters.com', 'forbes.com', 'buzzfeed.com', '9gag.com', 'imgur.com',
   'wordpress.com', 'blogger.com', 'wattpad.com', 'archive.org',
+  'espn.com', 'ndtv.com', 'indiatimes.com', 'hindustantimes.com', 'thehindu.com',
+  'indianexpress.com', 'timesofindia.com', 'moneycontrol.com', 'businessinsider.com',
+  'techcrunch.com', 'theverge.com', 'wired.com', 'arstechnica.com', 'redditstatic.com',
+
+  // Learning, creative work, finance, and travel
+  'coursera.org', 'udemy.com', 'edx.org', 'khanacademy.org', 'skillshare.com',
+  'unacademy.com', 'byjus.com', 'chegg.com', 'duolingo.com', 'udacity.com',
+  'behance.net', 'dribbble.com', 'artstation.com', 'pixiv.net', 'unsplash.com',
+  'pexels.com', 'giphy.com', 'tenor.com', 'freepik.com',
+  'binance.com', 'coinbase.com', 'kraken.com', 'coindesk.com', 'tradingview.com',
+  'zerodha.com', 'groww.in', 'coinmarketcap.com', 'booking.com', 'airbnb.com',
+  'makemytrip.com', 'goibibo.com', 'expedia.com', 'tripadvisor.com',
 
   // Dating and adult content
   'tinder.com', 'bumble.com', 'hinge.co', 'onlyfans.com', 'xvideos.com', 'pornhub.com',
   'xnxx.com', 'redtube.com', 'youporn.com', 'xhamster.com', 'chaturbate.com',
   'livejasmin.com', 'brazzers.com',
+  'spankbang.com', 'hqporner.com', 'txxx.com', 'motherless.com', 'rule34.xxx',
+  'nhentai.net', 'fapello.com', 'fansly.com', 'stripchat.com', 'camsoda.com',
 ];
 
 const BASELINE_HOSTS = ['google.com', '1.1.1.1', 'cloudflare.com'];
