@@ -127,12 +127,16 @@ const websiteCommand = {
       const dnsResolved = dnsLookup.addresses[0] || null;
 
       const options = {
-        hostname: parsedUrl.hostname,
+        // Use the resolved address so website checks also work when the runtime's
+        // native resolver is unavailable (for example, in a restricted sandbox).
+        hostname: dnsResolved || parsedUrl.hostname,
         port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
         path: parsedUrl.pathname || '/',
         method: 'HEAD',
         timeout: 10000,
-        rejectUnauthorized: false
+        rejectUnauthorized: false,
+        servername: parsedUrl.hostname,
+        headers: { Host: parsedUrl.host }
       };
 
       const req = proto.request(options, (res) => {

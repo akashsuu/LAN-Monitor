@@ -65,6 +65,7 @@ const internetCommand = {
     console.log('');
     formatter.heading('DNS Information');
     formatter.labelValue('DNS Server', dnsServer);
+    formatter.labelValue('Resolution Path', lookup.source === 'dns-over-https' ? 'DNS-over-HTTPS fallback' : 'System resolver');
     formatter.labelValue('DNS Latency', dnsResult.latency !== null ? formatter.ms(dnsResult.latency) : chalk.gray('N/A'));
     formatter.labelValue('google.com', lookup.addresses.length > 0
       ? lookup.addresses[0]

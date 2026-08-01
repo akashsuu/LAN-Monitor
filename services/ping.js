@@ -67,12 +67,14 @@ function parsePingLinux(output) {
 
 const pingService = {
   async ping(host, count = 4) {
+    const fallbackAddress = await this.resolveDNS(host);
+    const target = fallbackAddress || host;
     return new Promise((resolve) => {
       try {
         const isWin = network.isWindows();
         const pingCmd = isWin
-          ? `ping -n ${count} ${host}`
-          : `ping -c ${count} ${host}`;
+          ? `ping -n ${count} ${target}`
+          : `ping -c ${count} ${target}`;
 
         exec(pingCmd, { timeout: 30000 }, (error, stdout) => {
           if (error && !stdout) {
@@ -98,7 +100,7 @@ const pingService = {
 
           resolve({
             host,
-            resolvedIP,
+            resolvedIP: resolvedIP || fallbackAddress,
             replies: result.replies,
             average: result.average,
             packetLoss: result.packetLoss,
