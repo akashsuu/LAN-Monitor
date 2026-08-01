@@ -3,14 +3,49 @@ const store = require('../config/store');
 const dnsService = require('./dns');
 
 const DEFAULT_SITES = [
+  // Social networks and communities
   'facebook.com', 'instagram.com', 'twitter.com', 'x.com', 'youtube.com',
   'tiktok.com', 'snapchat.com', 'whatsapp.com', 'telegram.org', 'reddit.com',
-  'netflix.com', 'discord.com', 'spotify.com', 'twitch.tv', 'pinterest.com',
-  'linkedin.com', 'amazon.com', 'ebay.com', 'paypal.com', 'wikipedia.org',
-  'github.com', 'stackoverflow.com', 'gmail.com', 'google.com', 'yahoo.com',
-  'bing.com', 'chatgpt.com', 'openai.com', 'cloudflare.com', 'microsoft.com',
-  'roblox.com', 'epicgames.com', 'steampowered.com', 'dailymotion.com', 'vimeo.com',
-  'onlyfans.com', 'xvideos.com', 'pornhub.com', '9gag.com', 'imgur.com'
+  'discord.com', 'pinterest.com', 'linkedin.com', 'tumblr.com', 'threads.net',
+  'mastodon.social', 'quora.com', 'medium.com', 'flickr.com', 'deviantart.com',
+  'vk.com', 'weibo.com', 'weibo.cn', 'bsky.app', 'nextdoor.com',
+
+  // Video, music, and live streaming
+  'netflix.com', 'spotify.com', 'twitch.tv', 'dailymotion.com', 'vimeo.com',
+  'hulu.com', 'disneyplus.com', 'primevideo.com', 'max.com', 'peacocktv.com',
+  'paramountplus.com', 'crunchyroll.com', 'soundcloud.com', 'music.apple.com',
+  'pandora.com', 'deezer.com', 'jiosaavn.com', 'hotstar.com', 'zee5.com',
+  'sonyliv.com', 'mxplayer.in',
+
+  // Games and gaming communities
+  'roblox.com', 'epicgames.com', 'steampowered.com', 'store.steampowered.com',
+  'minecraft.net', 'playstation.com', 'xbox.com', 'nintendo.com', 'ea.com',
+  'ubisoft.com', 'riotgames.com', 'battle.net', 'valorant.com', 'fortnite.com',
+  'chess.com', 'discord.gg',
+
+  // Shopping, payments, and food delivery
+  'amazon.com', 'ebay.com', 'paypal.com', 'walmart.com', 'target.com',
+  'etsy.com', 'aliexpress.com', 'temu.com', 'flipkart.com', 'myntra.com',
+  'meesho.com', 'snapdeal.com', 'shopify.com', 'instacart.com', 'doordash.com',
+  'swiggy.com', 'zomato.com',
+
+  // Search, email, developer, AI, and cloud services
+  'wikipedia.org', 'github.com', 'gitlab.com', 'bitbucket.org', 'stackoverflow.com',
+  'gmail.com', 'google.com', 'yahoo.com', 'bing.com', 'duckduckgo.com',
+  'chatgpt.com', 'openai.com', 'claude.ai', 'gemini.google.com', 'copilot.microsoft.com',
+  'perplexity.ai', 'character.ai', 'huggingface.co', 'cloudflare.com', 'microsoft.com',
+  'office.com', 'dropbox.com', 'drive.google.com', 'onedrive.live.com', 'notion.so',
+  'canva.com', 'figma.com', 'slack.com', 'zoom.us', 'teams.microsoft.com',
+
+  // News, forums, and blogs
+  'news.google.com', 'bbc.com', 'cnn.com', 'nytimes.com', 'theguardian.com',
+  'reuters.com', 'forbes.com', 'buzzfeed.com', '9gag.com', 'imgur.com',
+  'wordpress.com', 'blogger.com', 'wattpad.com', 'archive.org',
+
+  // Dating and adult content
+  'tinder.com', 'bumble.com', 'hinge.co', 'onlyfans.com', 'xvideos.com', 'pornhub.com',
+  'xnxx.com', 'redtube.com', 'youporn.com', 'xhamster.com', 'chaturbate.com',
+  'livejasmin.com', 'brazzers.com',
 ];
 
 const BASELINE_HOSTS = ['google.com', '1.1.1.1', 'cloudflare.com'];
