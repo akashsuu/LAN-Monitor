@@ -1,4 +1,4 @@
-const chalk = require('chalk');
+const chalk = require('../utils/theme');
 const ora = require('ora');
 const clui = require('clui');
 const internetService = require('../services/internet');

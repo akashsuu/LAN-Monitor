@@ -1,4 +1,4 @@
-const chalk = require('chalk');
+const chalk = require('../utils/theme');
 const { exec } = require('child_process');
 const os = require('os');
 const store = require('../config/store');

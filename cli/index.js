@@ -1,5 +1,5 @@
 const { program } = require('commander');
-const chalk = require('chalk');
+const chalk = require('../utils/theme');
 const packageJson = require('../package.json');
 
 const pingCommand = require('../commands/ping');

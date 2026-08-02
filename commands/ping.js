@@ -1,4 +1,4 @@
-const chalk = require('chalk');
+const chalk = require('../utils/theme');
 const ora = require('ora');
 const pingService = require('../services/ping');
 const formatter = require('../utils/formatter');

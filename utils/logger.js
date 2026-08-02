@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const chalk = require('chalk');
+const chalk = require('./theme');
 
 const LOG_DIR = path.join(__dirname, '..', 'logs');
 const LOG_FILE = path.join(LOG_DIR, 'lan-monitor.log');

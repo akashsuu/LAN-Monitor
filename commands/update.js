@@ -1,4 +1,4 @@
-const chalk = require('chalk');
+const chalk = require('../utils/theme');
 const https = require('https');
 const packageJson = require('../package.json');
 

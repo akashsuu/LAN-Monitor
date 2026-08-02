@@ -1,4 +1,4 @@
-const chalk = require('chalk');
+const chalk = require('./theme');
 
 const formatter = {
   bytes(bytes) {

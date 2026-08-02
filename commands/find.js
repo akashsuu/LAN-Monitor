@@ -1,4 +1,4 @@
-const chalk = require('chalk');
+const chalk = require('../utils/theme');
 const Table = require('cli-table3');
 const store = require('../config/store');
 const vendor = require('../services/vendor');

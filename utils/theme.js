@@ -1,23 +1,37 @@
 const realChalk = require('chalk');
 
-// Accent color used across the CLI (light pink theme).
-const ACCENT = '#f48fb1';
+// Accent color remap: map cyan / blue (and their bright variants) to light pink.
+const PINK = '\u001b[38;2;244;143;177m';
+const REMAP = [
+	['\u001b[36m', PINK], // cyan
+	['\u001b[96m', PINK], // bright cyan
+	['\u001b[34m', PINK], // blue
+	['\u001b[94m', PINK], // bright blue
+	['\u001b[35m', PINK], // magenta
+	['\u001b[95m', PINK] // bright magenta
+];
 
-const ACCENT_NAMES = ['cyan', 'blue'];
-
-function makeProxy(target) {
-  return new Proxy(target, {
-    get(t, prop) {
-      if (prop === 'cyan' || prop === 'blue') {
-        return makeProxy(t.hex(ACCENT));
-      }
-      const value = t[prop];
-      return typeof value === 'function' ? makeProxy(value) : value;
-    },
-    apply(t, thisArg, args) {
-      return t(...args);
-    }
-  });
+function postProcess(str) {
+	let out = String(str);
+	for (const [from, to] of REMAP) {
+		if (out.indexOf(from) !== -1) {
+			out = out.split(from).join(to);
+		}
+	}
+	return out;
 }
 
-module.exports = makeProxy(realChalk);
+function themed(builder) {
+	const fn = (...args) => postProcess(builder(...args));
+	return new Proxy(fn, {
+		get(target, prop) {
+			return typeof builder[prop] === 'function' ? themed(builder[prop]) : builder[prop];
+		}
+	});
+}
+
+module.exports = themed(realChalk);
+module.exports.theme = {
+	name: 'light-pink',
+	accent: '#f48fb1'
+};

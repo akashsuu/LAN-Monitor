@@ -1,4 +1,4 @@
-const chalk = require('chalk');
+const chalk = require('../utils/theme');
 const ora = require('ora');
 const store = require('../config/store');
 const scanService = require('../services/scan');

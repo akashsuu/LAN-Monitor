@@ -1,4 +1,4 @@
-const chalk = require('chalk');
+const chalk = require('../utils/theme');
 const osDetection = require('../services/osdetect');
 const formatter = require('../utils/formatter');
 const macrandom = require('../services/macrandom');

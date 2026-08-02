@@ -1,4 +1,4 @@
-const chalk = require('chalk');
+const chalk = require('../utils/theme');
 const os = require('os');
 const pingService = require('../services/ping');
 const internetService = require('../services/internet');

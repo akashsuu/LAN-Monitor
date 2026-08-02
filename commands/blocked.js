@@ -1,4 +1,4 @@
-const chalk = require('chalk');
+const chalk = require('../utils/theme');
 const ora = require('ora');
 const Table = require('cli-table3');
 const blockedService = require('../services/blocked');

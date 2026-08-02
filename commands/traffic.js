@@ -1,4 +1,4 @@
-const chalk = require('chalk');
+const chalk = require('../utils/theme');
 const trafficService = require('../services/traffic');
 const formatter = require('../utils/formatter');
 

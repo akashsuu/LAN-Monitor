@@ -1,4 +1,4 @@
-const chalk = require('chalk');
+const chalk = require('../utils/theme');
 const scanService = require('../services/scan');
 const store = require('../config/store');
 const logger = require('../services/logging');
