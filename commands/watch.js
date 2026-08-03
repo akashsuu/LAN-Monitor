@@ -213,7 +213,7 @@ const watchService = {
 
         const current = {};
         for (const d of devices) {
-          current[d.ip] = { mac: d.mac, hostname: d.hostname, vendor: d.vendor, status: d.status };
+          current[d.ip] = { ip: d.ip, mac: d.mac, hostname: d.hostname, vendor: d.vendor, status: d.status };
         }
 
         const newDevices = [];
@@ -280,6 +280,17 @@ const watchService = {
     const ticker = setInterval(() => {
       refreshTraffic();
       render();
+      const elapsed = Date.now() - startTime;
+      if (elapsed >= duration) {
+        clearInterval(scanTimer);
+        clearInterval(ticker);
+        if (process.stdout.isTTY && process.stdout.cursorTo) {
+          process.stdout.cursorTo(0, 0);
+          process.stdout.write('\x1B[J');
+        }
+        console.log(chalk.yellow(`\n  Watch duration reached after ${fmtElapsed(elapsed)}. Scans: ${scanCount}. Events: ${events.length}.\n`));
+        process.exit(0);
+      }
     }, 1000);
 
     process.on('SIGINT', () => {
