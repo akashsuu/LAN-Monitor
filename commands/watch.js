@@ -28,7 +28,7 @@ function sparkline(values, width = 18) {
 
 function shortMac(mac) {
   if (!mac || mac === 'N/A') return chalk.gray('-');
-  const parts = mac.split(':');
+  const parts = String(mac).replace(/-/g, ':').split(':');
   return parts.slice(0, 3).join(':') + '\u2026';
 }
 
@@ -109,7 +109,7 @@ const watchService = {
           list.push({ ...st, online: false });
         }
       }
-      list.sort((a, b) => (b.online - a.online) || a.ip.localeCompare(b.ip, undefined, { numeric: true }));
+      list.sort((a, b) => (b.online - a.online) || String(a.ip || '').localeCompare(String(b.ip || ''), undefined, { numeric: true }));
       return list;
     };
 
@@ -143,10 +143,10 @@ const watchService = {
       }
       for (let i = 0; i < Math.min(10, deviceList.length); i++) {
         const d = deviceList[i];
-        const name = (d.mac && nicknames[d.mac.toUpperCase()]) || d.hostname || chalk.gray('?');
+        const name = (d.mac && nicknames[d.mac.toUpperCase()]) || d.hostname || (d.vendor && d.vendor !== 'Unknown' ? chalk.dim(d.vendor) : chalk.gray('?'));
         const vendor = (d.vendor && d.vendor !== 'Unknown') ? d.vendor : chalk.gray('-');
         const seen = d.firstSeen ? new Date(d.firstSeen).toLocaleDateString() : chalk.gray('-');
-        const ip = d.online ? formatter.deviceIP(d.ip) : chalk.gray(d.ip);
+        const ip = d.online ? formatter.deviceIP(d.ip) : chalk.gray(d.ip || '?');
         const mark = d.mac && store.isTrusted(d.mac) ? chalk.yellow(' \u2605') : '';
         const mac = d.mac ? ` ${chalk.dim(shortMac(d.mac))}` : '';
         out.push(`  ${chalk.gray(String(i + 1).padStart(3))}  ${String(ip).padEnd(15)} ${String(name).padEnd(20)} ${String(vendor).padEnd(18)} ${String(seen)}${mark}${mac}`);
